@@ -29,6 +29,20 @@ class RockForms extends WireData implements Module, ConfigurableModule
 
     // hooks
     $this->wire->addHookAfter("Page::render", $this, "hookDoubleSubmit");
+    $this->wire->addHookAfter("Page::render", $this, "hookAddAssets");
+  }
+
+  public function hookAddAssets(HookEvent $event)
+  {
+    if (!$this->rendered()->count()) return;
+    $assets = '';
+
+    if (!$this->noLiveValidation) {
+      $live = $this->wire->config->urls->root . "site/modules/RockForms/lib/live-form-validation.min.js";
+      $assets .= "<script src=$live defer></script>";
+    }
+
+    $event->return = str_replace("</head>", "$assets</head>", $event->return);
   }
 
   public function hookDoubleSubmit(HookEvent $event)
@@ -62,6 +76,16 @@ class RockForms extends WireData implements Module, ConfigurableModule
       'notes' => 'Forms that have no custom action redirect to this url parameter on successful form submission.'
         . "\nCurrent: ?{$this->successParam}=...",
       'value' => $this->successParam,
+    ]);
+    $url = "https://github.com/contributte/live-form-validation";
+    $inputfields->add([
+      'type' => 'checkbox',
+      'name' => 'noLiveValidation',
+      'description' => 'By default RockForms will load the live-validation script automatically whenever a form is rendered on the page.',
+      'label' => 'Live-Validation',
+      'checkboxLabel' => "Don't inject the live-validation script automatically",
+      'notes' => "See [$url]($url)",
+      'checked' => $this->noLiveValidation ? 'checked' : '',
     ]);
     return $inputfields;
   }

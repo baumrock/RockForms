@@ -29,3 +29,9 @@ If you don't specify a form action (`$form->setAction('/foo/')`) rockforms will 
 By default this is `form-success` so a form on page `/foo/bar/` would submit to `/foo/bar/?form-success=demo` where `demo` is the required name that you gave your form.
 
 Note that if you reload that page, RockForms will automatically redirect to the page url without the success parameter. This even works with multiple forms on the same page!
+
+# Rendering forms
+
+## Renderer
+
+## Live Validation
