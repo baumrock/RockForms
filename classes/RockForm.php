@@ -3,6 +3,7 @@
 namespace RockForms;
 
 use Nette\Forms\Form;
+use Nette\Forms\FormRenderer;
 use ProcessWire\ProcessWire;
 use ProcessWire\RockForms;
 
@@ -48,6 +49,15 @@ class RockForm extends Form
   public function rockforms(): RockForms
   {
     return $this->wire()->modules->get('RockForms');
+  }
+
+  /**
+   * Set RockForms Renderer by name
+   * Usage: $form->setRockFormsRenderer('UIkitRenderer');
+   */
+  public function setRockFormsRenderer(string $name)
+  {
+    $this->setRenderer($this->rockforms()->renderer($name));
   }
 
   public function submitCount(): int

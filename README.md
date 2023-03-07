@@ -32,6 +32,31 @@ Note that if you reload that page, RockForms will automatically redirect to the 
 
 # Rendering forms
 
+See https://doc.nette.org/en/forms/rendering for all details about nette forms rendering!
+
 ## Renderer
+
+To better understand how NetteForms will render your form inspect the renderer your form is using:
+
+```php
+$renderer = $form->getRenderer();
+bd($renderer); // using TracyDebugger!
+```
+
+<img src=https://i.imgur.com/ZwX1VNt.png height=400>
+
+You can then modify the markup of all form elements by setting new wrapper templates:
+
+```php
+$renderer = $form->getRenderer();
+$renderer->wrappers['controls']['container'] = 'dl';
+$renderer->wrappers['pair']['container'] = null;
+$renderer->wrappers['label']['container'] = 'dt';
+$renderer->wrappers['control']['container'] = 'dd';
+```
+
+### Creating a reusable Renderer
+
+Most likely you don't want to apply these changes to all of your forms manually, so you can create a custom Renderer that your forms can then use globally for rendering. Also using a custom Renderer you have a lot more control and options for rendering your forms!
 
 ## Live Validation

@@ -2,6 +2,8 @@
 
 namespace ProcessWire;
 
+use Nette\Forms\FormRenderer;
+use RockForms\Renderer\RockFormsRenderer;
 use RockForms\RockForm;
 
 /**
@@ -21,6 +23,7 @@ class RockForms extends WireData implements Module, ConfigurableModule
   {
     require_once __DIR__ . "/vendor/autoload.php";
     $this->wire->classLoader->addNamespace("RockForms", __DIR__ . "/classes");
+    $this->wire->classLoader->addNamespace("RockForms\Renderer", __DIR__ . "/RockFormsRenderer");
     $this->wire('rockforms', $this);
 
     // sanitize success parameter
@@ -55,12 +58,34 @@ class RockForms extends WireData implements Module, ConfigurableModule
     }
   }
 
+  /**
+   * Hookable method to intercept control rendering
+   */
+  public function ___renderControls(RockFormsRenderer $renderer, $parent)
+  {
+    return $renderer->renderControlsParent($parent);
+  }
+
   public function rendered(RockForm $form = null)
   {
     $rendered = $this->rendered ?: $this->wire(new WireArray());
     if (!$form) return $rendered;
     $rendered->add($form);
     $this->rendered = $rendered;
+  }
+
+  /**
+   * Load renderer by name
+   *
+   * Usage:
+   * $form->setRenderer($rockforms->renderer('UIkitRenderer'));
+   */
+  public function renderer($name): FormRenderer
+  {
+    if ($name instanceof FormRenderer) return $name;
+    $class = "\RockForms\Renderer\\$name";
+    $renderer = new $class();
+    return $renderer;
   }
 
   /**
