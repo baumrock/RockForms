@@ -4,14 +4,19 @@ ProcessWire module for simple, secure and versatile forms based on NetteForms.
 
 RockForms registers the new API variable `$rockforms` that is available in all your template files or via `$this->wire->rockforms`.
 
+Wording: RockForms (with s, plural) is the module and RockForm (without s, singular) is one instance of a `RockForm` object.
+
 # Usage
 
 ```php
+// create form with name "demo"
 $form = new RockForm("demo");
 $form->addText("forename", "Enter your first name")
   ->setRequired();
 $form->addText("surname", "Enter your given name");
 $form->addSubmit("submit", "Submit your name");
+
+// render success message or form
 if ($form->showSuccess()) {
   echo "Thank you for your order!";
 } else echo $form->render();
