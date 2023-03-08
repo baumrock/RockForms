@@ -30,6 +30,8 @@ class Markup extends BaseControl
 
   public function __construct()
   {
+    parent::__construct();
+
     // prevent it from being in $form->getValues()
     $this->setDisabled(true);
     $this->setOption('type', 'markup');

@@ -2,6 +2,7 @@
 
 namespace ProcessWire;
 
+use Nette\Forms\Control;
 use Nette\Forms\FormRenderer;
 use RockForms\Renderer\RockFormsRenderer;
 use RockForms\RockForm;
@@ -65,9 +66,25 @@ class RockForms extends WireData implements Module, ConfigurableModule
   /**
    * Hookable method to intercept rendering of all fields (controls)
    */
+  public function ___renderField(RockFormsRenderer $renderer, Control $control)
+  {
+    return $renderer->renderPairHelper($control);
+  }
+
+  /**
+   * Hookable method to intercept rendering of all fields (controls)
+   */
+  public function ___renderFieldMulti(RockFormsRenderer $renderer, array $controls)
+  {
+    return $renderer->renderPairMultiHelper($controls);
+  }
+
+  /**
+   * Hookable method to intercept rendering of all fields (controls)
+   */
   public function ___renderFields(RockFormsRenderer $renderer, $parent)
   {
-    return $renderer->renderControlsParent($parent);
+    return $renderer->renderControlsHelper($parent);
   }
 
   public function rendered(RockForm $form = null)
