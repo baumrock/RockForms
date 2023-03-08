@@ -20,6 +20,7 @@ class RockForm extends Form
   public function __construct(string $name)
   {
     parent::__construct($name);
+    $this->setRockFormsRenderer('RockFormsRenderer');
     // attach render hook that tells rockforms that this form
     // has been rendered (necessery for redirects)
     $this->onRender[] = function (RockForm $form) {
@@ -45,6 +46,19 @@ class RockForm extends Form
     $control = new Markup();
     $control->setHtml($str);
     $this->addComponent($control, $name ?: uniqid());
+  }
+
+  /**
+   * Return a Nette Html object
+   * Usage:
+   * $form->addText(
+   *   "your_fieldname",
+   *   $form->html("<strong>foo bar</strong>"
+   * );
+   */
+  public function html(string $html)
+  {
+    return \Nette\Utils\Html::el()->setHtml($html);
   }
 
   public function showSuccess()

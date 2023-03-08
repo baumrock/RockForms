@@ -46,6 +46,9 @@ class RockForms extends WireData implements Module, ConfigurableModule
     }
 
     if (!$this->noLiveValidation) {
+      if ($opt = $this->LiveFormOptions) {
+        $assets .= "<script>LiveFormOptions = " . json_encode($opt) . "</script>";
+      }
       $live = $this->wire->config->urls->root . "site/modules/RockForms/lib/live-form-validation.min.js";
       $assets .= "<script src=$live defer></script>";
     }

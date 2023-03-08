@@ -3,6 +3,7 @@
 namespace RockForms\Renderer;
 
 use Nette\Forms\Control;
+use Nette\Forms\Controls\BaseControl;
 use Nette\Forms\Form;
 use Nette\Forms\Rendering\DefaultFormRenderer;
 use ProcessWire\RockForms;
@@ -13,10 +14,38 @@ use function ProcessWire\wire;
 
 class RockFormsRenderer extends DefaultFormRenderer
 {
+  public function __construct()
+  {
+    $this->wrappers['controls']['container'] = null;
+
+    // add special tags to the container for individual css styling
+    // this is a RockForms feature, so it will not work in Nette FormRenderers
+    $this->wrappers['pair']['container'] = 'div class="field-{fieldname} type-{fieldtype}"';
+    $this->wrappers['error']['container'] = 'div class="form-errors"';
+    $this->wrappers['error']['item'] = 'div class="form-error"';
+
+    $this->wrappers['control']['errorcontainer'] = 'div class="field-error"';
+    $this->wrappers['control']['erroritem'] = '';
+
+    $this->wrappers['group']['container'] = 'div';
+    $this->wrappers['group']['label'] = 'div';
+
+    $this->wrappers['label']['container'] = 'div class="form-label"';
+    $this->wrappers['control']['container'] = 'div class="form-control"';
+  }
 
   public function getForm(): RockForm
   {
     return $this->form;
+  }
+
+  /**
+   * Return a Nette Html object
+   * Usage: $renderer->html("<strong>foo bar</strong>");
+   */
+  public function html(string $html)
+  {
+    return \Nette\Utils\Html::el()->setHtml($html);
   }
 
   /**
@@ -69,13 +98,13 @@ class RockFormsRenderer extends DefaultFormRenderer
     $form = $this->getForm();
     $hidden = array_keys($form->fieldTags);
     if (in_array($control->name, $hidden)) {
-      $html = parent::renderPair($control);
+      $html = $this->replaceTags(parent::renderPair($control), $control);
       $form->fieldTags[$control->name] = $html;
       return '';
     }
 
     // regular nette forms control --> regular rendering
-    return parent::renderPair($control);
+    return $this->replaceTags(parent::renderPair($control), $control);
   }
 
   /**
@@ -92,7 +121,19 @@ class RockFormsRenderer extends DefaultFormRenderer
    */
   public function renderPairMultiHelper(array $controls): string
   {
-    return parent::renderPairMulti($controls);
+    return $this->replaceTags(
+      parent::renderPairMulti($controls),
+      $controls
+    );
+  }
+
+  public function replaceTags($markup, $control)
+  {
+    if (is_array($control)) $control = $control[0];
+    /** @var BaseControl $control */
+    $markup = str_replace("{fieldname}", $control->name, $markup);
+    $markup = str_replace("{fieldtype}", $control->getOption('type'), $markup);
+    return $markup;
   }
 
   public function rockforms(): RockForms

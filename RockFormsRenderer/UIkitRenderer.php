@@ -15,17 +15,19 @@ class UIkitRenderer extends RockFormsRenderer
 {
   public function __construct()
   {
-    $this->wrappers['controls']['container'] = null;
-    $this->wrappers['pair']['container'] = 'div';
-    $this->wrappers['error']['container'] = 'div class="form-errors"';
+    parent::__construct();
+
+    // set options for live form validation
+    // if live-form-validation script is used this
+    // will make sure that errors on live validation look
+    // the same as non-live errors.
+    $this->rockforms()->LiveFormOptions = [
+      "messageErrorClass" => "uk-alert uk-alert-danger uk-margin-remove uk-display-block",
+    ];
+
+    // see RockFormsRenderer for all other wrapper settings
     $this->wrappers['error']['item'] = 'div class="uk-alert-danger" uk-alert';
-
     $this->wrappers['control']['errorcontainer'] = 'div class="uk-alert-danger uk-margin-remove" uk-alert';
-    $this->wrappers['control']['erroritem'] = '';
-
-    $this->wrappers['group']['container'] = 'div';
-    $this->wrappers['group']['label'] = 'div';
-
     $this->wrappers['label']['container'] = 'div class="uk-form-label"';
     $this->wrappers['control']['container'] = 'div class="uk-form-controls"';
   }
@@ -41,9 +43,7 @@ class UIkitRenderer extends RockFormsRenderer
 
     foreach ($form->getControls() as $control) {
       if ($control instanceof RadioList) {
-        $control->getControlPrototype()->addClass('uk-radio');
-        $control->getSeparatorPrototype()->setName('span class="uk-margin-small-left"');
-        $control->getContainerPrototype()->addClass('uk-alert-danger');
+        $control->getControlPrototype()->addClass('uk-radio uk-margin-small-right');
       } elseif ($control instanceof TextInput) {
         $control->getControlPrototype()
           ->addClass('uk-input');

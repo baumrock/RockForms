@@ -74,7 +74,15 @@ $renderer->wrappers['control']['container'] = 'dd';
 
 Most likely you don't want to apply these changes to all of your forms manually, so you can create a custom Renderer that your forms can then use globally for rendering. Also using a custom Renderer you have a lot more control and options for rendering your forms!
 
-## Live Validation
+# Assets
+
+RockForms will automatically inject all necessary assets into your site on page render. See RockForms.module.php method `hookAddAssets` methods for details!
+
+# Styling your forms
+
+You can modify many aspects of your form via PHP code, but sometimes it's just easier (or even better) to do adjustments via CSS. The `RockFormsRenderer` will automatically apply the field's name and type to the wrapping div to make it possible to target styles for every individual field or for a given type:
+
+<img src=https://i.imgur.com/ivFQ8l1.png height=200>
 
 ## Testing and styling errors
 
@@ -106,4 +114,34 @@ $control->getLabelPrototype()->addClass('uk-text-bold');
 
 // add a custom class to the control (input) element
 $control->getControlPrototype()->addClass('uk-form-small');
+```
+
+# Hooks
+
+RockForms adds the following hookable methods to make is easy to customise your forms:
+
+- RockForms::renderField
+- RockForms::renderFieldMulti
+- RockForms::renderFields
+
+## Modify the field label
+
+This example shows how you can make every required field's label bold and add the note `optional` to every field that is not required. Note that NetteForms uses the terms `label` and `caption` for field labels.
+
+<img src=https://i.imgur.com/34XwjKu.png>
+
+```php
+$wire->addHookBefore("RockForms::renderField", function (HookEvent $event) {
+  /** @var UIkitRenderer $renderer */
+  $renderer = $event->arguments(0);
+  /** @var BaseControl $control */
+  $control = $event->arguments(1);
+  if ($control->isRequired()) {
+    $control->getLabelPrototype()->addClass('uk-text-bold');
+  } else {
+    $control->setCaption($renderer->html(
+      $control->label->getText() . " <small>(optional)</small>"
+    ));
+  }
+});
 ```
