@@ -8,7 +8,7 @@ use RockForms\RockForm;
 
 /**
  * @author Bernhard Baumrock, 07.03.2023
- * @license Licensed under MIT
+ * @license COMMERCIAL PLEASE DO NOT DISTRIBUTE
  * @link https://www.baumrock.com
  */
 class RockForms extends WireData implements Module, ConfigurableModule
@@ -24,6 +24,7 @@ class RockForms extends WireData implements Module, ConfigurableModule
     require_once __DIR__ . "/vendor/autoload.php";
     $this->wire->classLoader->addNamespace("RockForms", __DIR__ . "/classes");
     $this->wire->classLoader->addNamespace("RockForms\Renderer", __DIR__ . "/RockFormsRenderer");
+    $this->wire->classLoader->addNamespace("RockForms\Controls", __DIR__ . "/controls");
     $this->wire('rockforms', $this);
 
     // sanitize success parameter
@@ -39,6 +40,9 @@ class RockForms extends WireData implements Module, ConfigurableModule
   {
     if (!$this->rendered()->count()) return;
     $assets = '';
+    if ($this->wire->config->debug) {
+      $assets .= "<!-- RockForms Assets added in RockForms.module.php -->";
+    }
 
     if (!$this->noLiveValidation) {
       $live = $this->wire->config->urls->root . "site/modules/RockForms/lib/live-form-validation.min.js";
@@ -59,9 +63,9 @@ class RockForms extends WireData implements Module, ConfigurableModule
   }
 
   /**
-   * Hookable method to intercept control rendering
+   * Hookable method to intercept rendering of all fields (controls)
    */
-  public function ___renderControls(RockFormsRenderer $renderer, $parent)
+  public function ___renderFields(RockFormsRenderer $renderer, $parent)
   {
     return $renderer->renderControlsParent($parent);
   }

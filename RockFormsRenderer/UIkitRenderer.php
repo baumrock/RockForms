@@ -17,17 +17,17 @@ class UIkitRenderer extends RockFormsRenderer
   {
     $this->wrappers['controls']['container'] = null;
     $this->wrappers['pair']['container'] = 'div';
-    $this->wrappers['error']['container'] = 'div class="uk-alert-danger" uk-alert';
-    $this->wrappers['error']['item'] = 'div';
+    $this->wrappers['error']['container'] = 'div class="form-errors"';
+    $this->wrappers['error']['item'] = 'div class="uk-alert-danger" uk-alert';
 
     $this->wrappers['control']['errorcontainer'] = 'div class="uk-alert-danger uk-margin-remove" uk-alert';
     $this->wrappers['control']['erroritem'] = '';
 
-    $this->wrappers['group']['container'] = 'div class=uk-margin-small';
+    $this->wrappers['group']['container'] = 'div';
     $this->wrappers['group']['label'] = 'div';
 
-    $this->wrappers['label']['container'] = 'div class=uk-form-label';
-    $this->wrappers['control']['container'] = 'div class="uk-form-controls uk-margin-small"';
+    $this->wrappers['label']['container'] = 'div class="uk-form-label"';
+    $this->wrappers['control']['container'] = 'div class="uk-form-controls"';
   }
 
   /**
@@ -36,6 +36,9 @@ class UIkitRenderer extends RockFormsRenderer
    */
   public function render(Form $form, ?string $mode = null): string
   {
+    $form->setHtmlAttribute('uk-grid');
+    $form->getElementPrototype()->addClass('uk-child-width-1-1');
+
     foreach ($form->getControls() as $control) {
       if ($control instanceof RadioList) {
         $control->getControlPrototype()->addClass('uk-radio');

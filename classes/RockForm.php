@@ -3,14 +3,15 @@
 namespace RockForms;
 
 use Nette\Forms\Form;
-use Nette\Forms\FormRenderer;
 use ProcessWire\ProcessWire;
 use ProcessWire\RockForms;
+use RockForms\Controls\Markup;
 
 use function ProcessWire\wire;
 
 class RockForm extends Form
 {
+  public $fieldTags = [];
 
   /**
    * Custom constructor
@@ -24,6 +25,26 @@ class RockForm extends Form
     $this->onRender[] = function (RockForm $form) {
       $form->rockforms()->rendered($form);
     };
+  }
+
+  /**
+   * Add custom markup control
+   * @return Markup
+   */
+  public function addMarkup($str, $name = null)
+  {
+    // try to find tags that represent other fields
+    foreach ($this->getControls() as $control) {
+      if (strpos($str, "{{$control->name}}") === false) continue;
+      // we found a tag like {fieldname}
+      // we add the fieldname to the array of fields that will
+      // later be hidden and injected at the new position
+      $this->fieldTags[$control->name] = true;
+    }
+
+    $control = new Markup();
+    $control->setHtml($str);
+    $this->addComponent($control, $name ?: uniqid());
   }
 
   public function showSuccess()

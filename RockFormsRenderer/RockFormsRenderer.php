@@ -2,6 +2,7 @@
 
 namespace RockForms\Renderer;
 
+use Nette\Forms\Form;
 use Nette\Forms\Rendering\DefaultFormRenderer;
 use ProcessWire\RockForms;
 use RockForms\RockForm;
@@ -17,13 +18,23 @@ class RockFormsRenderer extends DefaultFormRenderer
   }
 
   /**
+   * Provides complete form rendering.
+   * @param  string  $mode  'begin', 'errors', 'ownerrors', 'body', 'end' or empty to render all
+   */
+  public function render(Form $form, ?string $mode = null): string
+  {
+    $form->getElementPrototype()->addClass('RockForm');
+    return parent::render($form, $mode);
+  }
+
+  /**
    * Renders single visual row.
    * Overrides the default renderControls method to make it hookable
    * See RockForms::renderControls for usage
    */
   public function renderControls($parent): string
   {
-    return $this->rockforms()->renderControls($this, $parent);
+    return $this->rockforms()->renderFields($this, $parent);
   }
 
   /**

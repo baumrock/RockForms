@@ -34,6 +34,21 @@ Note that if you reload that page, RockForms will automatically redirect to the 
 
 See https://doc.nette.org/en/forms/rendering for all details about nette forms rendering!
 
+## Understanding NetteForms
+
+Every field for your form is called a `control` (or `component`) in NetteForms. It is very important to understand that every field usually consists of two parts:
+
+- the `label`
+- the `input` element, wich is less than ideally also called `control`
+
+In Nette this is called a `pair`. See https://doc.nette.org/en/forms/rendering#toc-renderer for details and this illustration:
+
+<img src=https://files.nette.org/git/forms/4.0/form-areas-en.webp>
+
+You have very granular control over all your fields in Nette, but at the beginning this makes working with NetteForms a little cumbersome.
+
+The most important thing to understand is that when it comes to manipulating HTML of your form (like adding classes or style attributes etc), you work with a Nette HTML object. You get this object by calling `$form->getElementPrototype()` or `$input->getLabelPrototype()` or `$input->getControlPrototype()`.
+
 ## Renderer
 
 To better understand how NetteForms will render your form inspect the renderer your form is using:
@@ -60,3 +75,35 @@ $renderer->wrappers['control']['container'] = 'dd';
 Most likely you don't want to apply these changes to all of your forms manually, so you can create a custom Renderer that your forms can then use globally for rendering. Also using a custom Renderer you have a lot more control and options for rendering your forms!
 
 ## Live Validation
+
+## Testing and styling errors
+
+There are two kind of errors: Form errors and field errors. For testing and styling errors it is handy to add errors directly in the setup of your form:
+
+```php
+$form = new RockForm("demo");
+$form->addError('demo form error');
+
+$control = $form->addText("forename", "First name")
+  ->setHtmlAttribute('placeholder', "Enter your first name here")
+  ->setRequired();
+$control->addError("This is a demo error");
+```
+
+## Adding custom classes to elements
+
+See section "Understanding NetteForms" above for important background!
+
+```php
+$form = new RockForm("demo");
+
+// add a custom class to the form element
+$form->getElementPrototype()->addClass('uk-grid-small');
+
+// add a custom class to the label element
+$control = $form->addText("forename");
+$control->getLabelPrototype()->addClass('uk-text-bold');
+
+// add a custom class to the control (input) element
+$control->getControlPrototype()->addClass('uk-form-small');
+```
