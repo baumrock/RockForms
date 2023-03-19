@@ -1,3 +1,12 @@
+# [0.5.0](https://github.com/baumrock/RockForms/compare/v0.4.0...v0.5.0) (2023-03-19)
+
+
+### Features
+
+* add $rockforms->render("YourForm") ([6779093](https://github.com/baumrock/RockForms/commit/6779093171bc95fb97112153ba0a02d77de94dff))
+
+
+
 # [0.4.0](https://github.com/baumrock/RockForms/compare/v0.3.0...v0.4.0) (2023-03-08)
 
 
