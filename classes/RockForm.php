@@ -5,6 +5,7 @@ namespace RockForms;
 use Nette\Forms\Form;
 use ProcessWire\ProcessWire;
 use ProcessWire\RockForms;
+use ProcessWire\WireData;
 use RockForms\Controls\Markup;
 
 use function ProcessWire\wire;
@@ -26,6 +27,7 @@ class RockForm extends Form
     $this->onRender[] = function (RockForm $form) {
       $form->rockforms()->rendered($form);
     };
+    $this->onValidate[] = [$this, 'processInput'];
   }
 
   /**
@@ -49,6 +51,13 @@ class RockForm extends Form
   }
 
   /**
+   * Should be implemented by Forms
+   */
+  public function buildForm()
+  {
+  }
+
+  /**
    * Return a Nette Html object
    * Usage:
    * $form->addText(
@@ -59,6 +68,49 @@ class RockForm extends Form
   public function html(string $html)
   {
     return \Nette\Utils\Html::el()->setHtml($html);
+  }
+
+  /**
+   * Should be implemented by Forms
+   */
+  public function processInput()
+  {
+  }
+
+  /**
+   * Renders form.
+   */
+  public function render(...$args): void
+  {
+    if ($this->showSuccess()) {
+      if (method_exists($this, "renderSuccess")) {
+        // get submitted values from session and reset session afterwards
+        // this to persist values across the submit-redirect-pattern
+        $values = $this->wire()->wire(new WireData());
+        $arr = $this->wire()->session->rockformValues;
+        if (is_array($arr)) $values->setArray($arr);
+        $this->wire()->session->rockformValues = false;
+
+        // render success message
+        echo $this->renderSuccess($values);
+        return;
+      }
+    }
+    echo parent::render(...$args);
+  }
+
+  public function rockforms(): RockForms
+  {
+    return $this->wire()->modules->get('RockForms');
+  }
+
+  /**
+   * Set RockForms Renderer by name
+   * Usage: $form->setRockFormsRenderer('UIkitRenderer');
+   */
+  public function setRockFormsRenderer(string $name)
+  {
+    $this->setRenderer($this->rockforms()->renderer($name));
   }
 
   public function showSuccess()
@@ -76,23 +128,10 @@ class RockForm extends Form
     // and redirect to the current page with success get parameter
     if ($this->isSuccess()) {
       $session->successForm = $this->name;
+      $session->rockformValues = (array)$this->getValues();
       $param = $this->rockforms()->successParam;
       $session->redirect("./?$param={$this->name}");
     }
-  }
-
-  public function rockforms(): RockForms
-  {
-    return $this->wire()->modules->get('RockForms');
-  }
-
-  /**
-   * Set RockForms Renderer by name
-   * Usage: $form->setRockFormsRenderer('UIkitRenderer');
-   */
-  public function setRockFormsRenderer(string $name)
-  {
-    $this->setRenderer($this->rockforms()->renderer($name));
   }
 
   public function submitCount(): int

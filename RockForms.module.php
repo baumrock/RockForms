@@ -37,6 +37,26 @@ class RockForms extends WireData implements Module, ConfigurableModule
     $this->wire->addHookAfter("Page::render", $this, "hookAddAssets");
   }
 
+  /**
+   * @return RockForm
+   */
+  public function getForm($form)
+  {
+    $name = (string)$form;
+    $dir = $this->wire->config->paths->assets . "RockForms";
+    $this->wire->classLoader->addNamespace("RockForms", $dir);
+    $this->wire->files->include("$dir/$name.php", [], ['allowedPaths' => [$dir]]);
+    try {
+      $class = "\\RockForms\\$name";
+      $form = new $class($name);
+      $form->buildForm();
+      return $form;
+    } catch (\Throwable $th) {
+      $this->log($th->getMessage());
+    }
+    return false;
+  }
+
   public function hookAddAssets(HookEvent $event)
   {
     if (!$this->rendered()->count()) return;
@@ -64,6 +84,13 @@ class RockForms extends WireData implements Module, ConfigurableModule
       if ($form->name !== $successForm) continue;
       $this->wire->session->redirect("./");
     }
+  }
+
+  public function render($form)
+  {
+    $form = $this->getForm($form);
+    if ($form instanceof RockForm) return $form->render();
+    return false;
   }
 
   /**
