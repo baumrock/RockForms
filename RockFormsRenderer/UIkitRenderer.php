@@ -23,7 +23,8 @@ class UIkitRenderer extends RockFormsRenderer
     // will make sure that errors on live validation look
     // the same as non-live errors.
     $this->rockforms()->LiveFormOptions = [
-      "messageErrorClass" => "uk-alert uk-alert-danger uk-margin-remove uk-display-block",
+      "messageErrorClass" => "uk-alert uk-alert-warning uk-margin-remove uk-display-block",
+      "messageErrorPrefix" => "",
     ];
 
     // see RockFormsRenderer for all other wrapper settings
