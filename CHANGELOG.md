@@ -1,3 +1,12 @@
+## [0.7.1](https://github.com/baumrock/RockForms/compare/v0.7.0...v0.7.1) (2023-03-21)
+
+
+### Bug Fixes
+
+* allow only one rockforms root page ([19234e9](https://github.com/baumrock/RockForms/commit/19234e9cfd71351358b113a50ce8b00c42ee63b2))
+
+
+
 # [0.7.0](https://github.com/baumrock/RockForms/compare/v0.6.0...v0.7.0) (2023-03-21)
 
 
@@ -32,17 +41,6 @@
 ### Features
 
 * add $rockforms->render("YourForm") ([6779093](https://github.com/baumrock/RockForms/commit/6779093171bc95fb97112153ba0a02d77de94dff))
-
-
-
-# [0.4.0](https://github.com/baumrock/RockForms/compare/v0.3.0...v0.4.0) (2023-03-08)
-
-
-### Features
-
-* add markup field/feature ([fa3149e](https://github.com/baumrock/RockForms/commit/fa3149e76ef39eb23f1d9a87d10ff011dc15709c))
-* add replaceTags feature on renderers ([b6a3f29](https://github.com/baumrock/RockForms/commit/b6a3f292052454becfd91b22d934d0b42cb5bcc2))
-* refactor/improve/add hookable methods ([7f8086e](https://github.com/baumrock/RockForms/commit/7f8086e46b8fddf3f32652f645425381d8411ceb))
 
 
 
