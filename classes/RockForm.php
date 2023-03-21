@@ -15,6 +15,9 @@ class RockForm extends Form
 {
   public $fieldTags = [];
 
+  /** @var ProcessWire */
+  public $wire;
+
   /**
    * Custom constructor
    * RockForms must have a name!
@@ -22,6 +25,7 @@ class RockForm extends Form
   public function __construct(string $name)
   {
     parent::__construct($name);
+    $this->wire = $this->wire();
     $this->setRockFormsRenderer('RockFormsRenderer');
     // attach render hook that tells rockforms that this form
     // has been rendered (necessery for redirects)

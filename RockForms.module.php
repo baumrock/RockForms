@@ -17,6 +17,8 @@ use RockForms\Root;
  */
 class RockForms extends WireData implements Module, ConfigurableModule
 {
+  const optin = "optin";
+
   /** @var WireArray */
   public $rendered;
 
@@ -51,6 +53,18 @@ class RockForms extends WireData implements Module, ConfigurableModule
     // hooks
     $this->wire->addHookAfter("Page::render", $this, "hookDoubleSubmit");
     $this->wire->addHookAfter("Page::render", $this, "hookAddAssets");
+    $this->wire->addHook("/" . self::optin . "/{key}/", $this, "handleOptIn");
+  }
+
+  public function checkbox($val, $tooltip = false)
+  {
+    if ($val) {
+      $t = $tooltip ? 'title=yes uk-tooltip' : '';
+      return '<svg ' . $t . ' xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="m9 12l2 2l4-4"/><path d="M12 3c7.2 0 9 1.8 9 9s-1.8 9-9 9s-9-1.8-9-9s1.8-9 9-9z"/></g></svg>';
+    } else {
+      $t = $tooltip ? 'title=no uk-tooltip' : '';
+      return '<svg ' . $t . ' xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3c7.2 0 9 1.8 9 9s-1.8 9-9 9s-9-1.8-9-9s1.8-9 9-9z"/></svg>';
+    }
   }
 
   public function entriesPage(): Entries|NullPage
@@ -59,6 +73,16 @@ class RockForms extends WireData implements Module, ConfigurableModule
       'template' => Entries::tpl,
       'parent' => $this->rootPage(),
     ]);
+  }
+
+  public function getEntry($key): Entry|false
+  {
+    $entry = $this->wire->pages->get([
+      'template' => Entry::tpl,
+      'parent' => $this->entriesPage(),
+      'name' => $key,
+    ]);
+    return $entry->id ? $entry : false;
   }
 
   /**
@@ -80,6 +104,23 @@ class RockForms extends WireData implements Module, ConfigurableModule
       $this->log($th->getMessage());
     }
     return false;
+  }
+
+  public function handleOptIn(HookEvent $event)
+  {
+    $entry = $this->getEntry($event->key);
+    if (!$entry) throw new Wire404Exception("Invalid key");
+    if ($this->wire->input->get->confirm) {
+      $entry->optin(true);
+      $form = $entry->getForm();
+      if ($form instanceof RockForm) {
+        if (method_exists($form, "onOptIn")) $form->onOptIn();
+      }
+      $this->wire->session->redirect("/");
+    }
+    return $this->wire->files->render(__DIR__ . "/lib/opt-in.php", [
+      'event' => $event,
+    ]);
   }
 
   public function hookAddAssets(HookEvent $event)
@@ -188,19 +229,14 @@ class RockForms extends WireData implements Module, ConfigurableModule
   /**
    * Render form values as uikit table
    */
-  public function renderTable($values, $labels, $tooltips = false)
+  public function renderTable($values, $labels = [], $tooltips = false)
   {
     if (is_string($values)) $values = json_decode($values);
-    $out = "<table class='uk-table uk-table-small uk-table-striped'>";
+    if (is_array($labels)) $labels = (new WireData())->setArray($labels);
+    $out = "<table class='uk-table uk-table-small uk-table-striped uk-margin-remove'>";
     foreach ($values as $k => $v) {
-      if ($v === true) {
-        $t = $tooltips ? 'title=yes uk-tooltip' : '';
-        $v = '<svg ' . $t . ' xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="m9 12l2 2l4-4"/><path d="M12 3c7.2 0 9 1.8 9 9s-1.8 9-9 9s-9-1.8-9-9s1.8-9 9-9z"/></g></svg>';
-      } elseif ($v === false) {
-        $t = $tooltips ? 'title=no uk-tooltip' : '';
-        $v = '<svg ' . $t . ' xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3c7.2 0 9 1.8 9 9s-1.8 9-9 9s-9-1.8-9-9s1.8-9 9-9z"/></svg>';
-      }
-      $label = $labels->get($k);
+      if (is_bool($v)) $v = $this->checkbox($v, $tooltips);
+      $label = $labels->get($k) ?: $k;
       $t = $tooltips ? "title='$k' uk-tooltip" : "";
       $out .= "<tr>
           <td class='uk-width-expand'>

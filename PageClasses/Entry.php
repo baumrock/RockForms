@@ -33,7 +33,10 @@ class Entry extends Page
   public function onCreate()
   {
     $this->status = 1;
-    $this->name = $this->wire->pages->names()->uniqueRandomPageName();
+    $this->name = $this->wire->pages->names()->uniqueRandomPageName([
+      'min' => 30,
+      'max' => 50,
+    ]);
     $this->set(self::field_user, $this->wire->user->id);
   }
 
@@ -44,24 +47,33 @@ class Entry extends Page
 
   public function editFormContent($form)
   {
-    if ($f = $form->get(self::field_form)) {
-      $f->columnWidth(33);
-    }
-
     $userid = $this->getFormatted(self::field_user);
+    if ($f = $form->get(self::field_form)) {
+      $f->columnWidth = 25;
+    }
     $form->add([
       'type' => 'markup',
       'label' => 'Submitted by',
       'icon' => 'user-circle-o',
       'value' => $this->wire->users->get($userid)->name ?: $userid,
-      'columnWidth' => 33,
+      'columnWidth' => 25,
     ]);
     $form->add([
       'type' => 'markup',
       'label' => 'Submitted at',
       'icon' => 'clock-o',
       'value' => date("Y-m-d H:i:s", $this->created),
-      'columnWidth' => 33,
+      'columnWidth' => 25,
+    ]);
+
+    $optin = $this->optin();
+    $form->add([
+      'type' => 'markup',
+      'label' => 'Opt-In',
+      'icon' => 'sign-in',
+      'value' => $this->rockforms()->checkbox($optin, true)
+        . " " . ($optin ? date("Y-m-d H:i:s", $optin) : ''),
+      'columnWidth' => 25,
     ]);
 
     $form->add([
@@ -74,6 +86,17 @@ class Entry extends Page
         true
       ),
     ]);
+
+    $form->add([
+      'type' => 'markup',
+      'label' => 'Opt-In',
+      'icon' => 'link',
+      'value' => $this->rockforms()->renderTable([
+        'Key' => "<div class='uk-text-truncate'>{$this->name}</div>",
+        'Opt-In-Link' => "<a href='{$this->optInLink()}' target=_blank>{$this->optInLink()}</a>",
+      ]),
+      'notes' => "You can implement the method onOptIn() in {$this->form()} to define custom logic or redirects after the opt-in page has been viewed.",
+    ]);
   }
 
   /** backend */
@@ -84,6 +107,15 @@ class Entry extends Page
       class='uk-text-small uk-margin-small-right uk-background-muted $class'
       style='padding: 2px 10px; border-radius: 5px; display:inline-block;font-variant-numeric: tabular-nums; font-size:11px;'
       >$str</span>"; // x
+  }
+
+  /**
+   * Get form from current entry
+   */
+  public function getForm()
+  {
+    $name = $this->form();
+    return $this->rockforms()->getForm($name);
   }
 
   public function getPageListLabel()
@@ -163,5 +195,18 @@ class Entry extends Page
         ],
       ],
     ]);
+  }
+
+  public function optin($val = null)
+  {
+    if ($val === null) return $this->meta('opt-in');
+    if ($val === true) $val = time();
+    $this->meta('opt-in', $val);
+  }
+
+  public function optInLink()
+  {
+    return $this->wire->pages->get(1)->httpUrl(true)
+      . $this->rockforms()::optin . "/" . $this->name . "/";
   }
 }
