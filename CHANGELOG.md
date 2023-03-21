@@ -1,3 +1,13 @@
+# [0.6.0](https://github.com/baumrock/RockForms/compare/v0.5.1...v0.6.0) (2023-03-21)
+
+
+### Features
+
+* add success event on submit ([bd1d6a1](https://github.com/baumrock/RockForms/commit/bd1d6a1d4df7404471af8ca452e0bc8c0390e846))
+* save submits to entry pages ([a80a953](https://github.com/baumrock/RockForms/commit/a80a9531e8513a2d7bbf5d9b9bd92bfc3ab733ca))
+
+
+
 ## [0.5.1](https://github.com/baumrock/RockForms/compare/v0.5.0...v0.5.1) (2023-03-20)
 
 
@@ -33,15 +43,6 @@
 ### Features
 
 * add WIP uikit renderer ([ad50b79](https://github.com/baumrock/RockForms/commit/ad50b79e52d3fdc47798fcf415ff679ca0003717))
-
-
-
-# [0.2.0](https://github.com/baumrock/RockForms/compare/v0.1.0...v0.2.0) (2023-03-07)
-
-
-### Features
-
-* add auto-load for live-validation ([eef94ee](https://github.com/baumrock/RockForms/commit/eef94eeafe804be151b5221d1848a7d53287c013))
 
 
 
