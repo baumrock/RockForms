@@ -96,6 +96,7 @@ class Entry extends Page
         'Opt-In-Link' => "<a href='{$this->optInLink()}' target=_blank>{$this->optInLink()}</a>",
       ]),
       'notes' => "You can implement the method onOptIn() in {$this->form()} to define custom logic or redirects after the opt-in page has been viewed.",
+      'collapsed' => Inputfield::collapsedYes,
     ]);
   }
 
