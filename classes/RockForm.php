@@ -6,6 +6,7 @@ use Nette\Forms\Form;
 use ProcessWire\ProcessWire;
 use ProcessWire\RockForms;
 use ProcessWire\WireData;
+use ReflectionClass;
 use RockForms\Controls\Markup;
 
 use function ProcessWire\wire;
@@ -57,6 +58,22 @@ class RockForm extends Form
   {
   }
 
+  public function className($short = true)
+  {
+    if ($short) return (new ReflectionClass($this))->getShortName();
+    return get_class($this);
+  }
+
+  public function fieldLabels(): array
+  {
+    $arr = [];
+    $texttools = $this->wire()->sanitizer->getTextTools();
+    foreach ($this->getComponents(true) as $c) {
+      $arr[$c->getName()] = $texttools->markupToText((string)$c->caption);
+    }
+    return $arr;
+  }
+
   /**
    * Return a Nette Html object
    * Usage:
@@ -102,6 +119,20 @@ class RockForm extends Form
   public function rockforms(): RockForms
   {
     return $this->wire()->modules->get('RockForms');
+  }
+
+  public function saveEntry($title): Entry
+  {
+    $values = $this->getValues('array');
+
+    $entry = new Entry();
+    $entry->set('title', $title);
+    $entry->set(Entry::field_form, $this->className());
+    $entry->set(Entry::field_labels, json_encode($this->fieldLabels()));
+    $entry->set(Entry::field_values, json_encode((array)$values));
+    $entry->save();
+
+    return $entry;
   }
 
   /**

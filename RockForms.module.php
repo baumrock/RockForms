@@ -4,8 +4,11 @@ namespace ProcessWire;
 
 use Nette\Forms\Control;
 use Nette\Forms\FormRenderer;
+use RockForms\Entries;
+use RockForms\Entry;
 use RockForms\Renderer\RockFormsRenderer;
 use RockForms\RockForm;
+use RockForms\Root;
 
 /**
  * @author Bernhard Baumrock, 07.03.2023
@@ -20,13 +23,26 @@ class RockForms extends WireData implements Module, ConfigurableModule
   public $submitCount;
   public $successParam = false;
 
+  private $forms;
+
   public function init()
   {
+    require_once __DIR__ . "/RockFormsPage.php";
     require_once __DIR__ . "/vendor/autoload.php";
     $this->wire->classLoader->addNamespace("RockForms", __DIR__ . "/classes");
+    $this->wire->classLoader->addNamespace("RockForms", __DIR__ . "/PageClasses");
     $this->wire->classLoader->addNamespace("RockForms\Renderer", __DIR__ . "/RockFormsRenderer");
     $this->wire->classLoader->addNamespace("RockForms\Controls", __DIR__ . "/controls");
+    $this->wire->classLoader->addNamespace(
+      "RockForms",
+      $this->wire->config->paths->assets . "RockForms"
+    );
     $this->wire('rockforms', $this);
+    $this->forms = new WireData();
+
+    /** @var RockMigrations $rm */
+    $rm = $this->wire->modules->get('RockMigrations');
+    $rm->watch($this);
 
     // sanitize success parameter
     $this->successParam = $this->wire->sanitizer->pageName($this->successParam);
@@ -37,19 +53,28 @@ class RockForms extends WireData implements Module, ConfigurableModule
     $this->wire->addHookAfter("Page::render", $this, "hookAddAssets");
   }
 
+  public function entriesPage(): Entries|NullPage
+  {
+    return $this->wire->pages->get([
+      'template' => Entries::tpl,
+      'parent' => $this->rootPage(),
+    ]);
+  }
+
   /**
    * @return RockForm
    */
   public function getForm($form)
   {
     $name = (string)$form;
+    if ($f = $this->forms->get($name)) return $f;
     $dir = $this->wire->config->paths->assets . "RockForms";
-    $this->wire->classLoader->addNamespace("RockForms", $dir);
     $this->wire->files->include("$dir/$name.php", [], ['allowedPaths' => [$dir]]);
     try {
       $class = "\\RockForms\\$name";
       $form = new $class($name);
       $form->buildForm();
+      $this->forms->set($name, $form);
       return $form;
     } catch (\Throwable $th) {
       $this->log($th->getMessage());
@@ -86,11 +111,54 @@ class RockForms extends WireData implements Module, ConfigurableModule
     }
   }
 
+  public function migrate()
+  {
+    /** @var RockMigrations $rm */
+    $rm = $this->wire->modules->get('RockMigrations');
+    $rm->migratePageClasses(__DIR__ . "/PageClasses", "RockForms", "RockForms");
+    $rm->setParentChild(Entries::tpl, Entry::tpl);
+    $root = $rm->createPage(
+      template: Root::tpl,
+      parent: 1,
+      name: 'rockforms',
+      title: 'RockForms',
+      status: ['hidden']
+    );
+    $rm->createPage(
+      template: Entries::tpl,
+      parent: $root,
+      name: 'entries',
+      title: 'Entries'
+    );
+  }
+
   public function render($form)
   {
     $form = $this->getForm($form);
     if ($form instanceof RockForm) return $form->render();
     return false;
+  }
+
+  public function rendered(RockForm $form = null)
+  {
+    $rendered = $this->rendered ?: $this->wire(new WireArray());
+    if (!$form) return $rendered;
+    $rendered->add($form);
+    $this->rendered = $rendered;
+  }
+
+  /**
+   * Load renderer by name
+   *
+   * Usage:
+   * $form->setRenderer($rockforms->renderer('UIkitRenderer'));
+   */
+  public function renderer($name): FormRenderer
+  {
+    if ($name instanceof FormRenderer) return $name;
+    $class = "\RockForms\Renderer\\$name";
+    $renderer = new $class();
+    return $renderer;
   }
 
   /**
@@ -117,26 +185,43 @@ class RockForms extends WireData implements Module, ConfigurableModule
     return $renderer->renderControlsHelper($parent);
   }
 
-  public function rendered(RockForm $form = null)
+  /**
+   * Render form values as uikit table
+   */
+  public function renderTable($values, $labels, $tooltips = false)
   {
-    $rendered = $this->rendered ?: $this->wire(new WireArray());
-    if (!$form) return $rendered;
-    $rendered->add($form);
-    $this->rendered = $rendered;
+    if (is_string($values)) $values = json_decode($values);
+    $out = "<table class='uk-table uk-table-small uk-table-striped'>";
+    foreach ($values as $k => $v) {
+      if ($v === true) {
+        $t = $tooltips ? 'title=yes uk-tooltip' : '';
+        $v = '<svg ' . $t . ' xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="m9 12l2 2l4-4"/><path d="M12 3c7.2 0 9 1.8 9 9s-1.8 9-9 9s-9-1.8-9-9s1.8-9 9-9z"/></g></svg>';
+      } elseif ($v === false) {
+        $t = $tooltips ? 'title=no uk-tooltip' : '';
+        $v = '<svg ' . $t . ' xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3c7.2 0 9 1.8 9 9s-1.8 9-9 9s-9-1.8-9-9s1.8-9 9-9z"/></svg>';
+      }
+      $label = $labels->get($k);
+      $t = $tooltips ? "title='$k' uk-tooltip" : "";
+      $out .= "<tr>
+          <td class='uk-width-expand'>
+            <span class='uk-text-small uk-text-muted' $t>$label</span><br>
+            $v
+          </td>
+        </tr>";
+    }
+    $out .= "</table>";
+    return $out;
   }
 
   /**
-   * Load renderer by name
-   *
-   * Usage:
-   * $form->setRenderer($rockforms->renderer('UIkitRenderer'));
+   * Return RockForms Root Page
    */
-  public function renderer($name): FormRenderer
+  public function rootPage(): Root|NullPage
   {
-    if ($name instanceof FormRenderer) return $name;
-    $class = "\RockForms\Renderer\\$name";
-    $renderer = new $class();
-    return $renderer;
+    return $this->wire->pages->get([
+      'template' => Root::tpl,
+      'parent' => 1,
+    ]);
   }
 
   /**

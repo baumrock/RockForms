@@ -16,6 +16,7 @@ $info = [
   'icon' => 'paper-plane-o',
   'requires' => [
     'PHP>=8.0',
+    'RockMigrations>=3.23.0',
   ],
   'installs' => [],
 ];
