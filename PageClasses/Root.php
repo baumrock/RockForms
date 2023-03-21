@@ -19,6 +19,7 @@ class Root extends Page
       'templates' => [
         self::tpl => [
           'noChildren' => true,
+          'noParents' => true,
         ],
       ],
     ]);
