@@ -1,3 +1,12 @@
+## [0.7.2](https://github.com/baumrock/RockForms/compare/v0.7.1...v0.7.2) (2023-03-21)
+
+
+### Bug Fixes
+
+* collapse opt-in field ([d0f89ac](https://github.com/baumrock/RockForms/commit/d0f89ac22f21e5a9667d54444cab106c36fc132e))
+
+
+
 ## [0.7.1](https://github.com/baumrock/RockForms/compare/v0.7.0...v0.7.1) (2023-03-21)
 
 
@@ -32,15 +41,6 @@
 ### Bug Fixes
 
 * remove uikit live form icon prefix ([5934619](https://github.com/baumrock/RockForms/commit/593461950d1a289c3c9c486a5b726ca06f01141d))
-
-
-
-# [0.5.0](https://github.com/baumrock/RockForms/compare/v0.4.0...v0.5.0) (2023-03-19)
-
-
-### Features
-
-* add $rockforms->render("YourForm") ([6779093](https://github.com/baumrock/RockForms/commit/6779093171bc95fb97112153ba0a02d77de94dff))
 
 
 
