@@ -66,13 +66,13 @@ class Entry extends Page
       'columnWidth' => 25,
     ]);
 
-    $optin = $this->optin();
+    $confirm = $this->confirm();
     $form->add([
       'type' => 'markup',
-      'label' => 'Opt-In',
+      'label' => 'Confirmed',
       'icon' => 'sign-in',
-      'value' => $this->rockforms()->checkbox($optin, true)
-        . " " . ($optin ? date("Y-m-d H:i:s", $optin) : ''),
+      'value' => $this->rockforms()->checkbox($confirm, true)
+        . " " . ($confirm ? date("Y-m-d H:i:s", $confirm) : ''),
       'columnWidth' => 25,
     ]);
 
@@ -89,13 +89,13 @@ class Entry extends Page
 
     $form->add([
       'type' => 'markup',
-      'label' => 'Opt-In',
+      'label' => 'Confirmation',
       'icon' => 'link',
       'value' => $this->rockforms()->renderTable([
         'Key' => "<div class='uk-text-truncate'>{$this->name}</div>",
-        'Opt-In-Link' => "<a href='{$this->optInLink()}' target=_blank>{$this->optInLink()}</a>",
+        'Confirmation-Link' => "<a href='{$this->confirmLink()}' target=_blank>{$this->confirmLink()}</a>",
       ]),
-      'notes' => "You can implement the method onOptIn() in {$this->form()} to define custom logic or redirects after the opt-in page has been viewed.",
+      'notes' => "You can implement the method onConfirm() in {$this->form()} to define custom logic or redirects after the opt-in page has been viewed.",
       'collapsed' => Inputfield::collapsedYes,
     ]);
   }
@@ -198,16 +198,16 @@ class Entry extends Page
     ]);
   }
 
-  public function optin($val = null)
+  public function confirm($val = null)
   {
     if ($val === null) return $this->meta('opt-in');
     if ($val === true) $val = time();
     $this->meta('opt-in', $val);
   }
 
-  public function optInLink()
+  public function confirmLink()
   {
     return $this->wire->pages->get(1)->httpUrl(true)
-      . $this->rockforms()::optin . "/" . $this->name . "/";
+      . $this->rockforms()::confirm . "/" . $this->name . "/";
   }
 }

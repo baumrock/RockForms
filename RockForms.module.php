@@ -17,7 +17,7 @@ use RockForms\Root;
  */
 class RockForms extends WireData implements Module, ConfigurableModule
 {
-  const optin = "optin";
+  const confirm = "forms-confirm";
 
   /** @var WireArray */
   public $rendered;
@@ -57,7 +57,7 @@ class RockForms extends WireData implements Module, ConfigurableModule
     // hooks
     $this->wire->addHookAfter("Page::render", $this, "hookDoubleSubmit");
     $this->wire->addHookAfter("Page::render", $this, "hookAddAssets");
-    $this->wire->addHook("/" . self::optin . "/{key}/", $this, "handleOptIn");
+    $this->wire->addHook("/" . self::confirm . "/{key}/", $this, "handleConfirm");
   }
 
   public function checkbox($val, $tooltip = false)
@@ -110,19 +110,19 @@ class RockForms extends WireData implements Module, ConfigurableModule
     return false;
   }
 
-  public function handleOptIn(HookEvent $event)
+  public function handleConfirm(HookEvent $event)
   {
     $entry = $this->getEntry($event->key);
     if (!$entry) throw new Wire404Exception("Invalid key");
     if ($this->wire->input->get->confirm) {
-      $entry->optin(true);
+      $entry->confirm(true);
       $form = $entry->getForm();
       if ($form instanceof RockForm) {
-        if (method_exists($form, "onOptIn")) $form->onOptIn();
+        if (method_exists($form, "onConfirm")) $form->onConfirm();
       }
       $this->wire->session->redirect("/");
     }
-    return $this->wire->files->render(__DIR__ . "/lib/opt-in.php", [
+    return $this->wire->files->render(__DIR__ . "/lib/confirm.php", [
       'event' => $event,
     ]);
   }
