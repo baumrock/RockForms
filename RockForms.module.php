@@ -118,7 +118,7 @@ class RockForms extends WireData implements Module, ConfigurableModule
       $entry->confirm(true);
       $form = $entry->getForm();
       if ($form instanceof RockForm) {
-        if (method_exists($form, "onConfirm")) $form->onConfirm();
+        if (method_exists($form, "onConfirm")) $form->onConfirm($entry);
       }
       $this->wire->session->redirect("/");
     }

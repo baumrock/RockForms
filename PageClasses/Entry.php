@@ -85,6 +85,7 @@ class Entry extends Page
         $this->labels(),
         true
       ),
+      'notes' => 'Use ->getValues() to access these values or ->getValue("foo") to get a single value.',
     ]);
 
     $form->add([
@@ -124,6 +125,11 @@ class Entry extends Page
     return $this->badge(date("Y-m-d H:i:s", $this->created))
       . $this->badge($this->form(), '')
       . $this->title;
+  }
+
+  public function getValue($name)
+  {
+    return $this->getValues()->get($name);
   }
 
   public function getValues()
