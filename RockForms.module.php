@@ -22,6 +22,9 @@ class RockForms extends WireData implements Module, ConfigurableModule
   /** @var WireArray */
   public $rendered;
 
+  /** @var WireData */
+  public $renderedMarkup;
+
   public $submitCount;
   public $successParam = false;
 
@@ -41,6 +44,7 @@ class RockForms extends WireData implements Module, ConfigurableModule
     );
     $this->wire('rockforms', $this);
     $this->forms = new WireData();
+    $this->renderedMarkup = new WireData();
 
     /** @var RockMigrations $rm */
     $rm = $this->wire->modules->get('RockMigrations');
@@ -173,10 +177,15 @@ class RockForms extends WireData implements Module, ConfigurableModule
     );
   }
 
-  public function render($form)
+  public function render(string $name)
   {
-    $form = $this->getForm($form);
-    if ($form instanceof RockForm) return $form->render();
+    if ($markup = $this->renderedMarkup->get($name)) return $markup;
+    $form = $this->getForm($name);
+    if ($form instanceof RockForm) {
+      $markup = $form->renderReturn();
+      $this->renderedMarkup->set($name, $markup);
+      return $markup;
+    }
     return false;
   }
 

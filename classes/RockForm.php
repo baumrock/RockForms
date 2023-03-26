@@ -120,6 +120,18 @@ class RockForm extends Form
     echo parent::render(...$args);
   }
 
+  /**
+   * Nette's render method renders the form using direct "echo"
+   * This method is a wrapper that calls render and catches the output via
+   * output buffer and then returns the generated markup for later use.
+   */
+  public function renderReturn(...$args): string
+  {
+    ob_start();
+    echo $this->render(...$args);
+    return ob_get_clean();
+  }
+
   public function rockforms(): RockForms
   {
     return $this->wire()->modules->get('RockForms');
@@ -154,15 +166,15 @@ class RockForm extends Form
     $session = $this->wire()->session;
 
     // if session flag is set we show the success message
-    if ($session->successForm === $this->name) {
-      $session->successForm = false;
+    if ($session->rockformSuccess === $this->name) {
+      $session->rockformSuccess = false;
       return true;
     }
 
     // form was successfully submitted, so we set the session flag
     // and redirect to the current page with success get parameter
     if ($this->isSuccess()) {
-      $session->successForm = $this->name;
+      $session->rockformSuccess = $this->name;
       $session->rockformValues = (array)$this->getValues();
       $param = $this->rockforms()->successParam;
       $session->redirect("./?$param={$this->name}");
