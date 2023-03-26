@@ -1,3 +1,12 @@
+# [0.8.0](https://github.com/baumrock/RockForms/compare/v0.7.2...v0.8.0) (2023-03-26)
+
+
+### Features
+
+* add textformatter and renderReturn() ([774d9b1](https://github.com/baumrock/RockForms/commit/774d9b18f247c8b3d6824d9a1c8183b76e2a0bf4))
+
+
+
 ## [0.7.2](https://github.com/baumrock/RockForms/compare/v0.7.1...v0.7.2) (2023-03-21)
 
 
@@ -32,15 +41,6 @@
 
 * add success event on submit ([bd1d6a1](https://github.com/baumrock/RockForms/commit/bd1d6a1d4df7404471af8ca452e0bc8c0390e846))
 * save submits to entry pages ([a80a953](https://github.com/baumrock/RockForms/commit/a80a9531e8513a2d7bbf5d9b9bd92bfc3ab733ca))
-
-
-
-## [0.5.1](https://github.com/baumrock/RockForms/compare/v0.5.0...v0.5.1) (2023-03-20)
-
-
-### Bug Fixes
-
-* remove uikit live form icon prefix ([5934619](https://github.com/baumrock/RockForms/commit/593461950d1a289c3c9c486a5b726ca06f01141d))
 
 
 
