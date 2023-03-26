@@ -17,7 +17,7 @@ use RockForms\Root;
  */
 class RockForms extends WireData implements Module, ConfigurableModule
 {
-  const confirm = "forms-confirm";
+  public $confirmParam = "forms-confirm";
 
   /** @var WireArray */
   public $rendered;
@@ -57,7 +57,7 @@ class RockForms extends WireData implements Module, ConfigurableModule
     // hooks
     $this->wire->addHookAfter("Page::render", $this, "hookDoubleSubmit");
     $this->wire->addHookAfter("Page::render", $this, "hookAddAssets");
-    $this->wire->addHook("/" . self::confirm . "/{key}/", $this, "handleConfirm");
+    $this->wire->addHook("/" . $this->confirmParam . "/{key}/", $this, "handleConfirm");
   }
 
   public function checkbox($val, $tooltip = false)
@@ -275,6 +275,12 @@ class RockForms extends WireData implements Module, ConfigurableModule
    */
   public function getModuleConfigInputfields($inputfields)
   {
+    $inputfields->add([
+      'type' => 'text',
+      'name' => 'confirmParam',
+      'label' => 'URL Confirmation Parameter',
+      'value' => $this->confirmParam,
+    ]);
     $inputfields->add([
       'type' => 'text',
       'name' => 'successParam',

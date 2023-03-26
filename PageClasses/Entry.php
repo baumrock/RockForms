@@ -208,6 +208,6 @@ class Entry extends Page
   public function confirmLink()
   {
     return $this->wire->pages->get(1)->httpUrl(true)
-      . $this->rockforms()::confirm . "/" . $this->name . "/";
+      . $this->rockforms()->confirmParam . "/" . $this->name . "/";
   }
 }
