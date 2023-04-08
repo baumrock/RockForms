@@ -86,6 +86,18 @@ class RockForm extends Form
   }
 
   /**
+   * Get current url
+   * By default this will also include the query string
+   * eg /foo/?bar=baz
+   */
+  public function getUrl($params = true)
+  {
+    if (!$params) return $this->wire->input->url();
+    $query = $this->wire->input->queryString();
+    return $this->wire->input->url() . ($query ? "?$query" : "");
+  }
+
+  /**
    * Return a Nette Html object
    * Usage:
    * $form->addText(
@@ -157,6 +169,9 @@ class RockForm extends Form
   public function saveEntry($title): Entry
   {
     $values = $this->getValues('array');
+
+    // add some helpful infos to values
+    $values = array_merge($values, ['_url' => $this->getUrl()]);
 
     $entry = new Entry();
     $entry->set('title', $title);
