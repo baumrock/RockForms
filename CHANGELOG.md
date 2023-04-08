@@ -1,3 +1,13 @@
+# [0.11.0](https://github.com/baumrock/RockForms/compare/v0.10.0...v0.11.0) (2023-04-08)
+
+
+### Features
+
+* add docs and improve query parameter support ([b40f9c1](https://github.com/baumrock/RockForms/commit/b40f9c1a0cdee02ccd61e7935109c71dc53ea992))
+* add init() for forms and update docs ([cbf7bb8](https://github.com/baumrock/RockForms/commit/cbf7bb8b5a071884a6849ee66357b321f2804dc3))
+
+
+
 # [0.10.0](https://github.com/baumrock/RockForms/compare/v0.9.0...v0.10.0) (2023-03-26)
 
 
@@ -32,15 +42,6 @@
 ### Bug Fixes
 
 * collapse opt-in field ([d0f89ac](https://github.com/baumrock/RockForms/commit/d0f89ac22f21e5a9667d54444cab106c36fc132e))
-
-
-
-## [0.7.1](https://github.com/baumrock/RockForms/compare/v0.7.0...v0.7.1) (2023-03-21)
-
-
-### Bug Fixes
-
-* allow only one rockforms root page ([19234e9](https://github.com/baumrock/RockForms/commit/19234e9cfd71351358b113a50ce8b00c42ee63b2))
 
 
 
