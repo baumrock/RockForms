@@ -5,6 +5,8 @@ namespace RockForms;
 use Nette\Forms\Form;
 use ProcessWire\ProcessWire;
 use ProcessWire\RockForms;
+use ProcessWire\RockFrontend;
+use ProcessWire\RockMails;
 use ProcessWire\WireData;
 use ReflectionClass;
 use RockForms\Controls\Markup;
@@ -33,6 +35,11 @@ class RockForm extends Form
       $form->rockforms()->rendered($form);
     };
     $this->onValidate[] = [$this, 'processInput'];
+    $this->init();
+  }
+
+  public function init()
+  {
   }
 
   /**
@@ -137,6 +144,16 @@ class RockForm extends Form
     return $this->wire()->modules->get('RockForms');
   }
 
+  public function rockfrontend(): RockFrontend
+  {
+    return $this->wire->modules->get('RockFrontend');
+  }
+
+  public function rockmails(): RockMails
+  {
+    return $this->wire->modules->get('RockMails');
+  }
+
   public function saveEntry($title): Entry
   {
     $values = $this->getValues('array');
@@ -177,7 +194,11 @@ class RockForm extends Form
       $session->rockformSuccess = $this->name;
       $session->rockformValues = (array)$this->getValues();
       $param = $this->rockforms()->successParam;
-      $session->redirect("./?$param={$this->name}");
+
+      $query = $this->wire->input->queryString();
+      $url = $this->wire->input->url() . "?$query";
+      if ($query) $url .= "&";
+      $session->redirect("{$url}$param={$this->name}");
     }
   }
 

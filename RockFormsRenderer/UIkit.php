@@ -12,7 +12,7 @@ use Nette\Forms\Form;
 /**
  * See https://gitlab.com/baumrock/RockForms/-/blob/master/renderers/UIKitRenderer.php
  */
-class UIkitRenderer extends RockFormsRenderer
+class UIkit extends RockFormsRenderer
 {
   public function __construct()
   {
@@ -32,6 +32,7 @@ class UIkitRenderer extends RockFormsRenderer
     $this->wrappers['control']['errorcontainer'] = 'div class="uk-alert-danger uk-margin-remove" uk-alert';
     $this->wrappers['label']['container'] = 'div class="uk-form-label"';
     $this->wrappers['control']['container'] = 'div class="uk-form-controls"';
+    $this->wrappers['hidden']['container'] = 'div class="uk-hidden"';
   }
 
   /**
