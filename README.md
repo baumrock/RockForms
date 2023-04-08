@@ -124,24 +124,4 @@ RockForms adds the following hookable methods to make is easy to customise your 
 - RockForms::renderFieldMulti
 - RockForms::renderFields
 
-## Modify the field label
 
-This example shows how you can make every required field's label bold and add the note `optional` to every field that is not required. Note that NetteForms uses the terms `label` and `caption` for field labels.
-
-<img src=https://i.imgur.com/34XwjKu.png>
-
-```php
-$wire->addHookBefore("RockForms::renderField", function (HookEvent $event) {
-  /** @var UIkitRenderer $renderer */
-  $renderer = $event->arguments(0);
-  /** @var BaseControl $control */
-  $control = $event->arguments(1);
-  if ($control->isRequired()) {
-    $control->getLabelPrototype()->addClass('uk-text-bold');
-  } else {
-    $control->setCaption($renderer->html(
-      $control->label->getText() . " <small>(optional)</small>"
-    ));
-  }
-});
-```

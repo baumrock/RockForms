@@ -35,6 +35,11 @@ class RockForm extends Form
       $form->rockforms()->rendered($form);
     };
     $this->onValidate[] = [$this, 'processInput'];
+    $this->init();
+  }
+
+  public function init()
+  {
   }
 
   /**

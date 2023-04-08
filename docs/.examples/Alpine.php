@@ -14,10 +14,9 @@ class Alpine extends RockForm
     $this->setHtmlAttribute("x-data", "{name: 'Bernhard'}");
     $this->setRockFormsRenderer("UIkit");
     $this->addMarkup("<div class='uk-margin'>
-      You entered: <strong x-text='name'></strong>
+      You habe a lovely name, <strong x-text='name'></strong>!
       </div>");
     $this->addText("name", "Enter your name")
-      ->getControlPrototype()
-      ->setAttribute('x-model', 'name');
+      ->setHtmlAttribute('x-model', 'name');
   }
 }

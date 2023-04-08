@@ -40,3 +40,7 @@ RockForms does NOT use iframes to render the form, so you have full control over
 I have put a lot of effort into making the manipulation of the markup as easy as possible. You can add classes to any element and set attributes at runtime ([see docs](markup/)).
 
 This makes RockForms a perfect companion for tools like [HTMX](https://htmx.org/) or [Alpine.js](https://alpinejs.dev/)
+
+## Examples
+
+You can find all examples of this docs in the `/docs/.examples` folder of the module.
