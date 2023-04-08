@@ -97,17 +97,22 @@ class RockForms extends WireData implements Module, ConfigurableModule
     $name = (string)$form;
     if ($f = $this->forms->get($name)) return $f;
     $dir = $this->wire->config->paths->assets . "RockForms";
-    $this->wire->files->include("$dir/$name.php", [], ['allowedPaths' => [$dir]]);
-    try {
-      $class = "\\RockForms\\$name";
-      $form = new $class($name);
-      $form->buildForm();
-      $this->forms->set($name, $form);
-      return $form;
-    } catch (\Throwable $th) {
-      $this->log($th->getMessage());
-    }
-    return false;
+    return $this->getFormFromFile("$dir/$name.php");
+  }
+
+  public function getFormFromFile($file)
+  {
+    if (!is_file($file)) throw new WireException("File $file not found");
+    $name = pathinfo($file)['filename'];
+    if ($f = $this->forms->get($name)) return $f;
+    require_once $file;
+
+    $class = "\\RockForms\\$name";
+    $form = new $class($name);
+    $form->buildForm();
+    $this->forms->set($name, $form);
+
+    return $form;
   }
 
   public function handleConfirm(HookEvent $event)
@@ -152,8 +157,19 @@ class RockForms extends WireData implements Module, ConfigurableModule
     if (!$successForm) return;
     foreach ($this->rendered() as $form) {
       if ($form->name !== $successForm) continue;
-      $this->wire->session->redirect("./");
+      $url = $this->wire->input->queryString([$this->successParam => null]);
+      if ($url) $url = "?$url";
+      $this->wire->session->redirect(
+        $this->wire->input->url() . $url
+      );
     }
+  }
+
+  public function html($str)
+  {
+    $rockfrontend = $this->wire->modules->get('RockFrontend');
+    if (!$rockfrontend) return $str;
+    return $rockfrontend->html($str);
   }
 
   public function migrate()
@@ -180,11 +196,13 @@ class RockForms extends WireData implements Module, ConfigurableModule
   public function render(string $name)
   {
     if ($markup = $this->renderedMarkup->get($name)) return $markup;
-    $form = $this->getForm($name);
+    if (is_file($name)) {
+      $form = $this->getFormFromFile($name);
+    } else $form = $this->getForm($name);
     if ($form instanceof RockForm) {
       $markup = $form->renderReturn();
-      $this->renderedMarkup->set($name, $markup);
-      return $markup;
+      $this->renderedMarkup->set($form->name, $markup);
+      return $this->html($markup);
     }
     return false;
   }
