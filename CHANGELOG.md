@@ -1,3 +1,12 @@
+# [0.12.0](https://github.com/baumrock/RockForms/compare/v0.11.0...v0.12.0) (2023-04-08)
+
+
+### Features
+
+* add url to entry values ([10a15d9](https://github.com/baumrock/RockForms/commit/10a15d9233cec6e60be761a30b7e1177c38ac44b))
+
+
+
 # [0.11.0](https://github.com/baumrock/RockForms/compare/v0.10.0...v0.11.0) (2023-04-08)
 
 
@@ -33,15 +42,6 @@
 ### Features
 
 * add textformatter and renderReturn() ([774d9b1](https://github.com/baumrock/RockForms/commit/774d9b18f247c8b3d6824d9a1c8183b76e2a0bf4))
-
-
-
-## [0.7.2](https://github.com/baumrock/RockForms/compare/v0.7.1...v0.7.2) (2023-03-21)
-
-
-### Bug Fixes
-
-* collapse opt-in field ([d0f89ac](https://github.com/baumrock/RockForms/commit/d0f89ac22f21e5a9667d54444cab106c36fc132e))
 
 
 
