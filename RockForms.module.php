@@ -122,9 +122,13 @@ class RockForms extends WireData implements Module, ConfigurableModule
     if ($this->wire->input->get->confirm) {
       $entry->confirm(true);
       $form = $entry->getForm();
+
+      // if the form implements an onConfirm method we trigger it now
       if ($form instanceof RockForm) {
         if (method_exists($form, "onConfirm")) $form->onConfirm($entry);
       }
+
+      // if the form does not redirect somewhere we redirect to the homepage
       $this->wire->session->redirect("/");
     }
     return $this->wire->files->render(__DIR__ . "/lib/confirm.php", [

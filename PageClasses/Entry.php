@@ -14,6 +14,7 @@ class Entry extends Page
 
   const tpl = "rockforms_entry";
   const prefix = "rockforms_entry_";
+  const confirmmeta = "confirmed";
 
   const field_form = self::prefix . "form";
   const field_values = self::prefix . "values";
@@ -88,6 +89,20 @@ class Entry extends Page
       'notes' => 'Use ->getValues() to access these values or ->getValue("foo") to get a single value.',
     ]);
 
+    $meta = $this->meta()->getArray();
+    $this->unsetArraykey($meta, self::confirmmeta);
+    $form->add([
+      'type' => 'markup',
+      'label' => 'Page Meta Data',
+      'icon' => 'database',
+      'value' => $this->rockforms()->renderTable(
+        array_values($meta),
+        array_keys($meta),
+        true
+      ),
+      'notes' => "Use \$page->meta('key', 'value') to add key value pairs.",
+    ]);
+
     $form->add([
       'type' => 'markup',
       'label' => 'Confirmation',
@@ -109,6 +124,19 @@ class Entry extends Page
       class='uk-text-small uk-margin-small-right uk-background-muted $class'
       style='padding: 2px 10px; border-radius: 5px; display:inline-block;font-variant-numeric: tabular-nums; font-size:11px;'
       >$str</span>"; // x
+  }
+
+  public function confirm($val = null)
+  {
+    if ($val === null) return $this->meta(self::confirmmeta);
+    if ($val === true) $val = time();
+    $this->meta(self::confirmmeta, $val);
+  }
+
+  public function confirmLink()
+  {
+    return $this->wire->pages->get(1)->httpUrl(true)
+      . $this->rockforms()->confirmParam . "/" . $this->name . "/";
   }
 
   /**
@@ -139,6 +167,11 @@ class Entry extends Page
     if (!is_array($arr)) return $data;
     $data->setArray($arr);
     return $data;
+  }
+
+  public function isConfirmed()
+  {
+    return $this->meta(self::confirmmeta);
   }
 
   public function labels()
@@ -204,16 +237,10 @@ class Entry extends Page
     ]);
   }
 
-  public function confirm($val = null)
+  public function unsetArraykey(&$array, $key)
   {
-    if ($val === null) return $this->meta('opt-in');
-    if ($val === true) $val = time();
-    $this->meta('opt-in', $val);
-  }
-
-  public function confirmLink()
-  {
-    return $this->wire->pages->get(1)->httpUrl(true)
-      . $this->rockforms()->confirmParam . "/" . $this->name . "/";
+    if (!is_array($array)) $array = [];
+    if (!array_key_exists($key, $array)) return;
+    unset($array[$key]);
   }
 }
