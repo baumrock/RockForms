@@ -93,7 +93,7 @@ class Entry extends Page
     $this->unsetArraykey($meta, self::confirmmeta);
     $form->add([
       'type' => 'markup',
-      'label' => 'Page Meta Data',
+      'label' => 'Page Meta',
       'icon' => 'database',
       'value' => $this->rockforms()->renderTable(
         array_values($meta),
