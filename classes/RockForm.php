@@ -170,15 +170,16 @@ class RockForm extends Form
   {
     $values = $this->getValues('array');
 
-    // add some helpful infos to values
-    $values = array_merge($values, ['_url' => $this->getUrl()]);
-
+    // save entry
     $entry = new Entry();
     $entry->set('title', $title);
     $entry->set(Entry::field_form, $this->className());
     $entry->set(Entry::field_labels, json_encode($this->fieldLabels()));
     $entry->set(Entry::field_values, json_encode((array)$values));
     $entry->save();
+
+    // save meta data to this entry
+    $entry->meta('url', $this->getUrl());
 
     return $entry;
   }
