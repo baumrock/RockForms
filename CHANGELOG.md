@@ -1,3 +1,12 @@
+# [0.13.0](https://github.com/baumrock/RockForms/compare/v0.12.0...v0.13.0) (2023-04-16)
+
+
+### Features
+
+* add entry meta data ([e22176e](https://github.com/baumrock/RockForms/commit/e22176eb37d3066e6fe414efa74b4ad4017b1154))
+
+
+
 # [0.12.0](https://github.com/baumrock/RockForms/compare/v0.11.0...v0.12.0) (2023-04-08)
 
 
@@ -33,15 +42,6 @@
 
 * make confirm parameter configurable ([456c73d](https://github.com/baumrock/RockForms/commit/456c73dddac9019d3d8cff156f0a44f664361d69))
 * rename opt-in to confirm ([f6f47cf](https://github.com/baumrock/RockForms/commit/f6f47cf13cc49de9b7ccf0acecc5e3d39c1f0e47))
-
-
-
-# [0.8.0](https://github.com/baumrock/RockForms/compare/v0.7.2...v0.8.0) (2023-03-26)
-
-
-### Features
-
-* add textformatter and renderReturn() ([774d9b1](https://github.com/baumrock/RockForms/commit/774d9b18f247c8b3d6824d9a1c8183b76e2a0bf4))
 
 
 
