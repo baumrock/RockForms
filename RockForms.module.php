@@ -40,7 +40,7 @@ class RockForms extends WireData implements Module, ConfigurableModule
     $this->wire->classLoader->addNamespace("RockForms\Controls", __DIR__ . "/controls");
     $this->wire->classLoader->addNamespace(
       "RockForms",
-      $this->wire->config->paths->assets . "RockForms"
+      $this->wire->config->paths->templates . "RockForms"
     );
     $this->wire('rockforms', $this);
     $this->forms = new WireData();
@@ -96,7 +96,7 @@ class RockForms extends WireData implements Module, ConfigurableModule
   {
     $name = (string)$form;
     if ($f = $this->forms->get($name)) return $f;
-    $dir = $this->wire->config->paths->assets . "RockForms";
+    $dir = $this->wire->config->paths->templates . "RockForms";
     return $this->getFormFromFile("$dir/$name.php");
   }
 
