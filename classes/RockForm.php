@@ -86,6 +86,15 @@ class RockForm extends Form
   }
 
   /**
+   * Alias for getComponent (more PW like)
+   * @return \Nette\Forms\Controls\BaseControl
+   */
+  public function getField($name)
+  {
+    return $this->getComponent($name);
+  }
+
+  /**
    * Get current url
    * By default this will also include the query string
    * eg /foo/?bar=baz
