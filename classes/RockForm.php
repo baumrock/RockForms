@@ -175,9 +175,9 @@ class RockForm extends Form
     return $this->wire->modules->get('RockMails');
   }
 
-  public function saveEntry($title): Entry
+  public function saveEntry($title, $values = null): Entry
   {
-    $values = $this->getValues('array');
+    if (!$values) $values = $this->getValues('array');
 
     // save entry
     $entry = new Entry();
