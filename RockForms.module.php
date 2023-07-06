@@ -107,10 +107,15 @@ class RockForms extends WireData implements Module, ConfigurableModule
     if ($f = $this->forms->get($name)) return $f;
     require_once $file;
 
+    $rf = $this->rockfrontend();
+    if ($rf) $rf->setTextdomain($file);
+
     $class = "\\RockForms\\$name";
     $form = new $class($name);
     $form->buildForm();
     $this->forms->set($name, $form);
+
+    if ($rf) $rf->setTextdomain();
 
     return $form;
   }
@@ -278,6 +283,11 @@ class RockForms extends WireData implements Module, ConfigurableModule
     }
     $out .= "</table>";
     return $out;
+  }
+
+  public function rockfrontend(): RockFrontend
+  {
+    return $this->wire->modules->get('RockFrontend');
   }
 
   /**
