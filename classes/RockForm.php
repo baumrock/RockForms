@@ -86,6 +86,15 @@ class RockForm extends Form
   }
 
   /**
+   * Alias for getComponent (more PW like)
+   * @return \Nette\Forms\Controls\BaseControl
+   */
+  public function getField($name)
+  {
+    return $this->getComponent($name);
+  }
+
+  /**
    * Get current url
    * By default this will also include the query string
    * eg /foo/?bar=baz
@@ -166,9 +175,9 @@ class RockForm extends Form
     return $this->wire->modules->get('RockMails');
   }
 
-  public function saveEntry($title): Entry
+  public function saveEntry($title, $values = null): Entry
   {
-    $values = $this->getValues('array');
+    if (!$values) $values = $this->getValues('array');
 
     // save entry
     $entry = new Entry();
