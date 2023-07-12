@@ -92,11 +92,12 @@ class RockForms extends WireData implements Module, ConfigurableModule
   /**
    * @return RockForm
    */
-  public function getForm($form)
+  public function getForm($form, $silent = false)
   {
     $name = (string)$form;
     if ($f = $this->forms->get($name)) return $f;
     $dir = $this->wire->config->paths->templates . "RockForms";
+    if ($silent and !is_file("$dir/$name.php")) return false;
     return $this->getFormFromFile("$dir/$name.php");
   }
 
