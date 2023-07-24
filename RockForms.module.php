@@ -60,17 +60,6 @@ class RockForms extends WireData implements Module, ConfigurableModule
     $this->wire->addHook("/" . $this->confirmParam . "/{key}/", $this, "handleConfirm");
   }
 
-  public function checkbox($val, $tooltip = false)
-  {
-    if ($val) {
-      $t = $tooltip ? 'title=yes uk-tooltip' : '';
-      return '<svg ' . $t . ' xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="m9 12l2 2l4-4"/><path d="M12 3c7.2 0 9 1.8 9 9s-1.8 9-9 9s-9-1.8-9-9s1.8-9 9-9z"/></g></svg>';
-    } else {
-      $t = $tooltip ? 'title=no uk-tooltip' : '';
-      return '<svg ' . $t . ' xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3c7.2 0 9 1.8 9 9s-1.8 9-9 9s-9-1.8-9-9s1.8-9 9-9z"/></svg>';
-    }
-  }
-
   public function entriesPage(): Entries|NullPage
   {
     return $this->wire->pages->get([
@@ -261,29 +250,6 @@ class RockForms extends WireData implements Module, ConfigurableModule
   public function ___renderFields(RockFormsRenderer $renderer, $parent)
   {
     return $renderer->renderControlsHelper($parent);
-  }
-
-  /**
-   * Render form values as uikit table
-   */
-  public function renderTable($values, $labels = [], $tooltips = false)
-  {
-    if (is_string($values)) $values = json_decode($values);
-    if (is_array($labels)) $labels = (new WireData())->setArray($labels);
-    $out = "<table class='uk-table uk-table-small uk-table-striped uk-margin-remove'>";
-    foreach ($values as $k => $v) {
-      if (is_bool($v)) $v = $this->checkbox($v, $tooltips);
-      $label = $labels->get($k) ?: $k;
-      $t = $tooltips ? "title='$k' uk-tooltip" : "";
-      $out .= "<tr>
-          <td class='uk-width-expand'>
-            <span class='uk-text-small uk-text-muted' $t>$label</span><br>
-            $v
-          </td>
-        </tr>";
-    }
-    $out .= "</table>";
-    return $out;
   }
 
   public function rockfrontend(): RockFrontend

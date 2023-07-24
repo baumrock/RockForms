@@ -81,7 +81,7 @@ class Entry extends Page
       'type' => 'markup',
       'label' => 'Form Data',
       'icon' => 'database',
-      'value' => $this->rockforms()->renderTable(
+      'value' => $this->rockmigrations()->renderTable(
         $this->getValues(),
         $this->labels(),
         true
@@ -95,7 +95,7 @@ class Entry extends Page
       'type' => 'markup',
       'label' => 'Page Meta',
       'icon' => 'database',
-      'value' => $this->rockforms()->renderTable(
+      'value' => $this->rockmigrations()->renderTable(
         array_values($meta),
         array_keys($meta),
         true
@@ -107,7 +107,7 @@ class Entry extends Page
       'type' => 'markup',
       'label' => 'Confirmation',
       'icon' => 'link',
-      'value' => $this->rockforms()->renderTable([
+      'value' => $this->rockmigrations()->renderTable([
         'Key' => "<div class='uk-text-truncate'>{$this->name}</div>",
         'Confirmation-Link' => "<a href='{$this->confirmLink()}' target=_blank>{$this->confirmLink()}</a>",
       ]),
