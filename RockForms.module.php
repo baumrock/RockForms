@@ -85,9 +85,24 @@ class RockForms extends WireData implements Module, ConfigurableModule
   {
     $name = (string)$form;
     if ($f = $this->forms->get($name)) return $f;
-    $dir = $this->wire->config->paths->templates . "RockForms";
-    if ($silent and !is_file("$dir/$name.php")) return false;
-    return $this->getFormFromFile("$dir/$name.php");
+
+    // look for forms in all RockForms folders
+    $dirs = [
+      $this->wire->config->paths->templates . "RockForms",
+    ];
+
+    // find form files in /site/modules/*/RockForms
+    $glob = glob($this->wire->config->paths->siteModules . "*/RockForms/*.php");
+    foreach ($glob as $file) $dirs[] = dirname($file);
+
+    // check all folders for forms file
+    foreach (array_unique($dirs) as $dir) {
+      if (!is_file("$dir/$name.php")) continue;
+      return $this->getFormFromFile("$dir/$name.php");
+    }
+
+    if ($silent) return false;
+    throw new WireException("Form $name not found");
   }
 
   public function getFormFromFile($file)
