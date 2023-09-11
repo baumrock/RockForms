@@ -1,3 +1,19 @@
+# [0.15.0](https://github.com/baumrock/RockForms/compare/v0.14.0...v0.15.0) (2023-09-11)
+
+
+### Bug Fixes
+
+* add missing uk-select class ([74765b9](https://github.com/baumrock/RockForms/commit/74765b94ee1a96364ae9500a4ee4298d1781d676))
+
+
+### Features
+
+* add GUI for creating forms ([2a05e09](https://github.com/baumrock/RockForms/commit/2a05e099040d3f38d30ceed068757940e062f59c))
+* autoload rockforms from /site/modules ([7833614](https://github.com/baumrock/RockForms/commit/7833614236f3690a7cc566ed4f2b2f530fe9b193))
+* move renderTable to RockMigrations ([c2920b0](https://github.com/baumrock/RockForms/commit/c2920b052963d80b3d839281d126d4f5e0b6669a))
+
+
+
 # [0.14.0](https://github.com/baumrock/RockForms/compare/v0.13.1...v0.14.0) (2023-07-07)
 
 
@@ -37,16 +53,6 @@
 ### Features
 
 * add url to entry values ([10a15d9](https://github.com/baumrock/RockForms/commit/10a15d9233cec6e60be761a30b7e1177c38ac44b))
-
-
-
-# [0.11.0](https://github.com/baumrock/RockForms/compare/v0.10.0...v0.11.0) (2023-04-08)
-
-
-### Features
-
-* add docs and improve query parameter support ([b40f9c1](https://github.com/baumrock/RockForms/commit/b40f9c1a0cdee02ccd61e7935109c71dc53ea992))
-* add init() for forms and update docs ([cbf7bb8](https://github.com/baumrock/RockForms/commit/cbf7bb8b5a071884a6849ee66357b321f2804dc3))
 
 
 
