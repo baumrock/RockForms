@@ -4,6 +4,7 @@ namespace RockForms\Renderer;
 
 use Nette\Forms\Controls\Checkbox;
 use Nette\Forms\Controls\RadioList;
+use Nette\Forms\Controls\SelectBox;
 use Nette\Forms\Controls\SubmitButton;
 use Nette\Forms\Controls\TextArea;
 use Nette\Forms\Controls\TextInput;
@@ -56,6 +57,9 @@ class UIkit extends RockFormsRenderer
       } elseif ($control instanceof TextArea) {
         $control->getControlPrototype()
           ->addClass('uk-textarea');
+      } elseif ($control instanceof SelectBox) {
+        $control->getControlPrototype()
+          ->addClass('uk-select');
       } elseif ($control instanceof SubmitButton) {
         $control->getControlPrototype()->addClass('uk-button uk-button-primary');
       }

@@ -60,17 +60,6 @@ class RockForms extends WireData implements Module, ConfigurableModule
     $this->wire->addHook("/" . $this->confirmParam . "/{key}/", $this, "handleConfirm");
   }
 
-  public function checkbox($val, $tooltip = false)
-  {
-    if ($val) {
-      $t = $tooltip ? 'title=yes uk-tooltip' : '';
-      return '<svg ' . $t . ' xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="m9 12l2 2l4-4"/><path d="M12 3c7.2 0 9 1.8 9 9s-1.8 9-9 9s-9-1.8-9-9s1.8-9 9-9z"/></g></svg>';
-    } else {
-      $t = $tooltip ? 'title=no uk-tooltip' : '';
-      return '<svg ' . $t . ' xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3c7.2 0 9 1.8 9 9s-1.8 9-9 9s-9-1.8-9-9s1.8-9 9-9z"/></svg>';
-    }
-  }
-
   public function entriesPage(): Entries|NullPage
   {
     return $this->wire->pages->get([
@@ -92,12 +81,28 @@ class RockForms extends WireData implements Module, ConfigurableModule
   /**
    * @return RockForm
    */
-  public function getForm($form)
+  public function getForm($form, $silent = false)
   {
     $name = (string)$form;
     if ($f = $this->forms->get($name)) return $f;
-    $dir = $this->wire->config->paths->templates . "RockForms";
-    return $this->getFormFromFile("$dir/$name.php");
+
+    // look for forms in all RockForms folders
+    $dirs = [
+      $this->wire->config->paths->templates . "RockForms",
+    ];
+
+    // find form files in /site/modules/*/RockForms
+    $glob = glob($this->wire->config->paths->siteModules . "*/RockForms/*.php");
+    foreach ($glob as $file) $dirs[] = dirname($file);
+
+    // check all folders for forms file
+    foreach (array_unique($dirs) as $dir) {
+      if (!is_file("$dir/$name.php")) continue;
+      return $this->getFormFromFile("$dir/$name.php");
+    }
+
+    if ($silent) return false;
+    throw new WireException("Form $name not found");
   }
 
   public function getFormFromFile($file)
@@ -262,29 +267,6 @@ class RockForms extends WireData implements Module, ConfigurableModule
     return $renderer->renderControlsHelper($parent);
   }
 
-  /**
-   * Render form values as uikit table
-   */
-  public function renderTable($values, $labels = [], $tooltips = false)
-  {
-    if (is_string($values)) $values = json_decode($values);
-    if (is_array($labels)) $labels = (new WireData())->setArray($labels);
-    $out = "<table class='uk-table uk-table-small uk-table-striped uk-margin-remove'>";
-    foreach ($values as $k => $v) {
-      if (is_bool($v)) $v = $this->checkbox($v, $tooltips);
-      $label = $labels->get($k) ?: $k;
-      $t = $tooltips ? "title='$k' uk-tooltip" : "";
-      $out .= "<tr>
-          <td class='uk-width-expand'>
-            <span class='uk-text-small uk-text-muted' $t>$label</span><br>
-            $v
-          </td>
-        </tr>";
-    }
-    $out .= "</table>";
-    return $out;
-  }
-
   public function rockfrontend(): RockFrontend
   {
     return $this->wire->modules->get('RockFrontend');
@@ -307,6 +289,19 @@ class RockForms extends WireData implements Module, ConfigurableModule
    */
   public function getModuleConfigInputfields($inputfields)
   {
+    $name = strtolower($this);
+    $inputfields->add([
+      'type' => 'markup',
+      'label' => 'Documentation & Updates',
+      'icon' => 'life-ring',
+      'value' => "<p>Hey there, coding rockstars! 👋</p>
+        <ul>
+          <li><a class=uk-text-bold href=https://www.baumrock.com/modules/$name/docs>Read the docs</a> and level up your coding game! 🚀💻😎</li>
+          <li><a class=uk-text-bold href=https://www.baumrock.com/rock-monthly>Sign up now for our monthly newsletter</a> and receive the latest updates and exclusive offers right to your inbox! 🚀💻📫</li>
+          <li><a class=uk-text-bold href=https://github.com/baumrock/$name>Show some love by starring the project</a> and keep me motivated to build more awesome stuff for you! 🌟💻😊</li>
+          <li><a class=uk-text-bold href=https://paypal.me/baumrockcom>Support my work with a donation</a>, and together, we'll keep rocking the coding world! 💖💻💰</li>
+        </ul>",
+    ]);
     $inputfields->add([
       'type' => 'text',
       'name' => 'confirmParam',
