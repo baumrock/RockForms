@@ -83,8 +83,7 @@ class Entry extends Page
       'icon' => 'database',
       'value' => $this->rockmigrations()->renderTable(
         $this->getValues(),
-        $this->labels(),
-        true
+        $this->labels()->getArray()
       ),
       'notes' => 'Use ->getValues() to access these values or ->getValue("foo") to get a single value.',
     ]);
