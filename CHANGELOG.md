@@ -1,3 +1,12 @@
+## [0.15.1](https://github.com/baumrock/RockForms/compare/v0.15.0...v0.15.1) (2023-09-27)
+
+
+### Bug Fixes
+
+* entries not viewable ([98cb55b](https://github.com/baumrock/RockForms/commit/98cb55bded3cddbfb8ef14b17bbdc17d0ca1fdf3))
+
+
+
 # [0.15.0](https://github.com/baumrock/RockForms/compare/v0.14.0...v0.15.0) (2023-09-11)
 
 
@@ -44,15 +53,6 @@
 ### Features
 
 * add entry meta data ([e22176e](https://github.com/baumrock/RockForms/commit/e22176eb37d3066e6fe414efa74b4ad4017b1154))
-
-
-
-# [0.12.0](https://github.com/baumrock/RockForms/compare/v0.11.0...v0.12.0) (2023-04-08)
-
-
-### Features
-
-* add url to entry values ([10a15d9](https://github.com/baumrock/RockForms/commit/10a15d9233cec6e60be761a30b7e1177c38ac44b))
 
 
 
