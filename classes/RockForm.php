@@ -16,6 +16,8 @@ use function ProcessWire\wire;
 class RockForm extends Form
 {
   public $fieldTags = [];
+  public $prependMarkup = false;
+  public $appendMarkup = false;
 
   /** @var ProcessWire */
   public $wire;
@@ -60,6 +62,14 @@ class RockForm extends Form
     $control = new Markup();
     $control->setHtml($str);
     $this->addComponent($control, $name ?: uniqid());
+  }
+
+  /**
+   * Append markup after the <form> element
+   */
+  public function appendMarkup(string $markup): void
+  {
+    $this->appendMarkup = $markup;
   }
 
   /**
@@ -117,6 +127,14 @@ class RockForm extends Form
   public function html(string $html)
   {
     return \Nette\Utils\Html::el()->setHtml($html);
+  }
+
+  /**
+   * Prepend markup before the <form> element
+   */
+  public function prependMarkup(string $markup): void
+  {
+    $this->prependMarkup = $markup;
   }
 
   /**

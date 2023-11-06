@@ -55,7 +55,10 @@ class RockFormsRenderer extends DefaultFormRenderer
   public function render(Form $form, ?string $mode = null): string
   {
     $form->getElementPrototype()->addClass('RockForm');
-    return parent::render($form, $mode);
+    return
+      $form->prependMarkup .
+      parent::render($form, $mode) .
+      $form->appendMarkup;
   }
 
   /**
