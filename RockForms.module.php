@@ -4,6 +4,7 @@ namespace ProcessWire;
 
 use Nette\Forms\Control;
 use Nette\Forms\FormRenderer;
+use Nette\Forms\Validator;
 use RockForms\Entries;
 use RockForms\Entry;
 use RockForms\Renderer\RockFormsRenderer;
@@ -293,6 +294,35 @@ class RockForms extends WireData implements Module, ConfigurableModule
       'template' => Root::tpl,
       'parent' => 1,
     ]);
+  }
+
+  /**
+   * Set global error messages for the form validator
+   * This is to set global translations eg in /site/ready.php
+   *
+   * Usage to use predefined translations:
+   * $rockforms->setErrors('de');
+   *
+   * Usage with custom error messages:
+   * $rockforms->setErrors(
+   *   Form::FILLED => 'Bitte füllen Sie dieses Feld aus',
+   * );
+   *
+   * You can also combine both:
+   * $rockforms->setErrors('de');
+   * $rockforms->setErrors(
+   *   Form::FILLED => 'My custom required error',
+   * );
+   */
+  public function setErrors($messages): void
+  {
+    if (is_string($messages)) {
+      // load messages from translation file
+      $messages = strtolower($messages);
+      $messages = $this->wire->files->render(__DIR__ . "/errors/$messages.php");
+    }
+    if (!is_array($messages)) throw new WireException("Error translations must be an array.");
+    Validator::$messages = array_merge(Validator::$messages, $messages);
   }
 
   /**
