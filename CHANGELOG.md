@@ -1,3 +1,13 @@
+# [0.16.0](https://github.com/baumrock/RockForms/compare/v0.15.1...v0.16.0) (2024-01-03)
+
+
+### Features
+
+* add setErrors() translation helper ([f48da89](https://github.com/baumrock/RockForms/commit/f48da895aad99b06df6cc330a331b1f2d529c05e))
+* new prependMarkup() and appendMarkup() ([7b3d884](https://github.com/baumrock/RockForms/commit/7b3d884996faee96f2eabd0178093f4123f1a8a8))
+
+
+
 ## [0.15.1](https://github.com/baumrock/RockForms/compare/v0.15.0...v0.15.1) (2023-09-27)
 
 
@@ -44,15 +54,6 @@
 ### Bug Fixes
 
 * save url to meta data ([9b25d74](https://github.com/baumrock/RockForms/commit/9b25d743cdac70d1a2c0fc5f6a6113039899597a))
-
-
-
-# [0.13.0](https://github.com/baumrock/RockForms/compare/v0.12.0...v0.13.0) (2023-04-16)
-
-
-### Features
-
-* add entry meta data ([e22176e](https://github.com/baumrock/RockForms/commit/e22176eb37d3066e6fe414efa74b4ad4017b1154))
 
 
 
