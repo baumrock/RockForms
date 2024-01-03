@@ -10,9 +10,6 @@ use Nette\Forms\Controls\TextArea;
 use Nette\Forms\Controls\TextInput;
 use Nette\Forms\Form;
 
-/**
- * See https://gitlab.com/baumrock/RockForms/-/blob/master/renderers/UIKitRenderer.php
- */
 class UIkit extends RockFormsRenderer
 {
   public function __construct()
@@ -43,7 +40,7 @@ class UIkit extends RockFormsRenderer
   public function render(Form $form, ?string $mode = null): string
   {
     $form->setHtmlAttribute('uk-grid');
-    $form->getElementPrototype()->addClass('uk-child-width-1-1');
+    $form->getElementPrototype()->addClass('uk-grid uk-grid-small uk-child-width-1-1');
 
     foreach ($form->getControls() as $control) {
       if ($control instanceof RadioList) {
