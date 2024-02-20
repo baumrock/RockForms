@@ -39,9 +39,10 @@ class UIkit extends RockFormsRenderer
    */
   public function render(Form $form, ?string $mode = null): string
   {
-    $form->setHtmlAttribute('uk-grid');
-    $form->getElementPrototype()->addClass('uk-grid uk-grid-small uk-child-width-1-1');
-
+    // dont add uk-grid to the <form> element
+    // if you need it just add it like this in your form's php file:
+    // $form->setHtmlAttribute('uk-grid');
+    // $form->getElementPrototype()->addClass('uk-grid uk-grid-small');
     foreach ($form->getControls() as $control) {
       if ($control instanceof RadioList) {
         $control->getControlPrototype()->addClass('uk-radio uk-margin-small-right');

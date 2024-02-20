@@ -11,6 +11,7 @@ use ProcessWire\WireData;
 use ReflectionClass;
 use RockForms\Controls\Markup;
 
+use function ProcessWire\rockmigrations;
 use function ProcessWire\wire;
 
 class RockForm extends Form
@@ -176,6 +177,11 @@ class RockForm extends Form
     ob_start();
     echo $this->render(...$args);
     return ob_get_clean();
+  }
+
+  public function renderTable(): string
+  {
+    return rockmigrations()->renderTable($this->getValues());
   }
 
   public function rockforms(): RockForms
