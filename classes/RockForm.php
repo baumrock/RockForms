@@ -87,7 +87,7 @@ class RockForm extends Form
     $delay = $this->rockforms()->submitdelay;
     if (!$delay) return;
     $id = "timeonpage-" . uniqid();
-    $this->addText("timeonpage")
+    $this->addInteger("timeonpage")
       ->setHtmlAttribute("id", $id)
       ->setHtmlAttribute("hidden", true)
       ->addRule(
