@@ -391,7 +391,8 @@ class RockForms extends WireData implements Module, ConfigurableModule
       'description' => 'To use honeypot fields for your forms enter one fieldname per line. Existing fieldnames will be skipped, so make sure to use good looking names like "message", "comment", "email" or such that you dont use yourself.',
       'label' => 'Honeypot Fields',
       'value' => $this->honeypotfields,
-      'notes' => "Enter one per line. If you don't want to use honeypots at all leave this field empty.",
+      'notes' => "Enter one per line. If you don't want to use honeypots at all leave this field empty.
+        Note: add .rf-hny { display: none; } to your site's CSS to hide the honeypot fields.",
     ]);
     return $inputfields;
   }
