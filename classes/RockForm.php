@@ -87,12 +87,32 @@ class RockForm extends Form
     $this->addComponent($control, $name ?: uniqid());
   }
 
+  public function addSubmitDelay(): void
+  {
+    $delay = $this->rockforms()->submitdelay;
+    if (!$delay) return;
+    $id = "timeonpage-" . uniqid();
+    $field = $this->addHidden("timeonpage")
+      ->setHtmlAttribute("id", $id)
+      ->addRule(
+        $this::MIN,
+        "Please wait some time before submitting the form",
+        $delay
+      );
+    $values = $this->getValuesWithoutHoney();
+    $file = realpath(__DIR__ . "/../includes/wait.php");
+    $this->addMarkup($this->wire->files->render($file, ['id' => $id]));
+
+    // reset value if form was submitted?
+    if ($values->timeonpage) $field->setValue(0);
+  }
+
   /**
    * Append markup after the <form> element
    */
   public function appendMarkup(string $markup): void
   {
-    $this->appendMarkup = $markup;
+    $this->appendMarkup .= $markup;
   }
 
   /**

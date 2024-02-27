@@ -32,6 +32,8 @@ class RockForms extends WireData implements Module, ConfigurableModule
 
   public $successParam = false;
 
+  public $submitdelay = 0;
+
   private $forms;
 
   public function init()
@@ -138,7 +140,12 @@ class RockForms extends WireData implements Module, ConfigurableModule
     // after filling the fields one by one
     $form->addHoney();
 
+    // add regular form fields
     $form->buildForm();
+
+    // add submit delay
+    $form->addSubmitDelay();
+
     $this->forms->set($name, $form);
 
     if ($rf) $rf->setTextdomain();
@@ -398,6 +405,13 @@ class RockForms extends WireData implements Module, ConfigurableModule
       'value' => $this->honeypotfields,
       'notes' => "Enter one per line. If you don't want to use honeypots at all leave this field empty.
         Note: add .rf-hny { display: none; } to your site's CSS to hide the honeypot fields.",
+    ]);
+    $inputfields->add([
+      'type' => 'integer',
+      'name' => 'submitdelay',
+      'label' => 'Submit Delay (in Seconds)',
+      'value' => $this->submitdelay,
+      'notes' => 'Spam-Bots usually fill forms very quickly - humans dont!',
     ]);
     return $inputfields;
   }
