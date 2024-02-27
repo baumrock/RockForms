@@ -97,7 +97,7 @@ class RockForm extends Form
       ->setHtmlAttribute("hidden", true)
       ->addRule(
         $this::MIN,
-        "Please wait $delay seconds before submitting the form",
+        "Please wait a moment before submitting the form and try again",
         $delay
       );
     $file = realpath(__DIR__ . "/../includes/wait.php");
