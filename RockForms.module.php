@@ -20,6 +20,8 @@ class RockForms extends WireData implements Module, ConfigurableModule
 {
   public $confirmParam = "forms-confirm";
 
+  public $honeypotfields;
+
   /** @var WireArray */
   public $rendered;
 
@@ -27,6 +29,7 @@ class RockForms extends WireData implements Module, ConfigurableModule
   public $renderedMarkup;
 
   public $submitCount;
+
   public $successParam = false;
 
   private $forms;
@@ -130,6 +133,7 @@ class RockForms extends WireData implements Module, ConfigurableModule
     $class = "\\RockForms\\$name";
     $form = new $class($name);
     $form->buildForm();
+    $form->addHoney();
     $this->forms->set($name, $form);
 
     if ($rf) $rf->setTextdomain();
@@ -156,6 +160,19 @@ class RockForms extends WireData implements Module, ConfigurableModule
     return $this->wire->files->render(__DIR__ . "/lib/confirm.php", [
       'event' => $event,
     ]);
+  }
+
+  /**
+   * Get names of honeyfields to add to each form
+   * @return array
+   */
+  public function honeyFields(): array
+  {
+    $arr = explode("\n", $this->honeypotfields);
+    $arr = array_map(function ($item) {
+      return $this->wire->sanitizer->fieldName($item);
+    }, $arr);
+    return array_filter($arr);
   }
 
   public function hookAddAssets(HookEvent $event)
@@ -367,6 +384,14 @@ class RockForms extends WireData implements Module, ConfigurableModule
       'checkboxLabel' => "Don't inject the live-validation script automatically",
       'notes' => "See [$url]($url)",
       'checked' => $this->noLiveValidation ? 'checked' : '',
+    ]);
+    $inputfields->add([
+      'type' => 'textarea',
+      'name' => 'honeypotfields',
+      'description' => 'To use honeypot fields for your forms enter one fieldname per line. Existing fieldnames will be skipped, so make sure to use good looking names like "message", "comment", "email" or such that you dont use yourself.',
+      'label' => 'Honeypot Fields',
+      'value' => $this->honeypotfields,
+      'notes' => "Enter one per line. If you don't want to use honeypots at all leave this field empty.",
     ]);
     return $inputfields;
   }

@@ -2,13 +2,19 @@
 
 namespace RockForms;
 
+use Nette\Forms\Controls\TextInput;
 use Nette\Forms\Form;
+use Nette\InvalidStateException;
+use Nette\InvalidArgumentException;
 use ProcessWire\ProcessWire;
 use ProcessWire\RockForms;
 use ProcessWire\RockFrontend;
 use ProcessWire\RockMails;
 use ProcessWire\WireData;
+use ProcessWire\WireException;
+use ProcessWire\WirePermissionException;
 use ReflectionClass;
+use ReflectionException;
 use RockForms\Controls\Markup;
 
 use function ProcessWire\rockmigrations;
@@ -43,6 +49,22 @@ class RockForm extends Form
 
   public function init()
   {
+  }
+
+  /**
+   * Add honeypot fields to form
+   */
+  public function addHoney(): void
+  {
+    $fields = $this->getFields();
+    $honeyFields = $this->rockforms()->honeyFields();
+    foreach ($honeyFields as $field) {
+      if ($fields->$field) continue;
+      $control = $this->addText($field, "Please enter $field")
+        ->addRule($this::BLANK);
+      /** @var TextInput $control */
+      $control->setOption("rockforms-honey", true);
+    }
   }
 
   /**
@@ -106,6 +128,16 @@ class RockForm extends Form
   }
 
   /**
+   * Get all fields of the form as WireData object (for nicer syntax)
+   */
+  public function getFields(): WireData
+  {
+    $names = [];
+    foreach ($this->getControls() as $c) $names[$c->name] = $c;
+    return (new WireData)->setArray($names);
+  }
+
+  /**
    * Get current url
    * By default this will also include the query string
    * eg /foo/?bar=baz
@@ -115,6 +147,20 @@ class RockForm extends Form
     if (!$params) return $this->wire->input->url();
     $query = $this->wire->input->queryString();
     return $this->wire->input->url() . ($query ? "?$query" : "");
+  }
+
+  /**
+   * Get submitted values without honeypot fields
+   */
+  public function getValuesWithoutHoney(): WireData
+  {
+    $values = new WireData();
+    $values->setArray($this->getValues('array'));
+    foreach ($this->getFields() as $name => $field) {
+      if (!$field->getOption("rockforms-honey")) continue;
+      $values->remove($name);
+    }
+    return $values;
   }
 
   /**
@@ -202,7 +248,7 @@ class RockForm extends Form
 
   public function saveEntry($title, $values = null): Entry
   {
-    if (!$values) $values = $this->getValues('array');
+    if (!$values) $values = $this->getValuesWithoutHoney()->getArray();
 
     // save entry
     $entry = new Entry();
