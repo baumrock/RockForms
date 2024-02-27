@@ -14,19 +14,11 @@ RockForms simplifies the process of adding honeypot fields to your forms. Here's
 
 1. **Enable Honeypot Fields**: To enable honeypot fields, you don't need to do anything manually in your form's code. RockForms automatically adds them based on the configuration you set in the module's settings.
 
-2. **Configure Honeypot Fields**: You can specify the names of the honeypot fields in the RockForms module settings. Navigate to the module's configuration page and find the 'Honeypot Fields' setting. Enter one field name per line. Choose names that are likely to attract bot submissions, such as "email", "url", or "comment".
+2. **Configure Honeypot Fields**: You can specify the names of the honeypot fields in the RockForms module settings. Navigate to the module's configuration page and find the 'Honeypot Fields' setting. Enter one field name per line. Choose names that are likely to attract bot submissions, such as "email", "url", or "comment" but make sure it's a name that you don't need for actual data. For example you could use "email" for the honeypot and use "mail" as real data field.
 
 3. **Customize CSS**: While honeypot fields are invisible to humans, they are hidden using CSS. Ensure that your site's CSS includes the necessary styles to hide these fields. Typically, you would add a rule like `.rf-hny { display: none; }` to your stylesheet.
 
 4. **Monitor and Adjust**: After implementing honeypot fields, monitor your form submissions for a while. If you notice that spam is still getting through, consider changing the names of your honeypot fields or adding more fields.
-
-### Best Practices
-
-- **Field Names**: Use common field names for honeypots that bots are likely to fill out.
-To ensure the effectiveness of honeypot fields, it's crucial to have a diverse set of field names. If your form includes a field that matches the name of a honeypot field (e.g., a legitimate "email" field when "email" is also used as a honeypot), RockForms will automatically exclude the honeypot to avoid conflicts. This means if you only have one honeypot field named "email" and your form also includes a legitimate "email" field, the form will not have any honeypot protection. To mitigate this, it's recommended to configure multiple honeypot fields with varied names. This way, even if one honeypot field is excluded due to a naming conflict, others can still provide spam protection.
-- **Testing**: After setting up honeypot fields, test your forms to ensure that legitimate submissions are not affected. Fill out the form as a user would, leaving the honeypot fields empty, and verify that the submission is successful.
-
-By following these steps and best practices, you can effectively use honeypot fields to reduce spam submissions without impacting the user experience on your site.
 
 ## External Anti-Spam Providers
 

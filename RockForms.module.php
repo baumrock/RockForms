@@ -132,8 +132,13 @@ class RockForms extends WireData implements Module, ConfigurableModule
 
     $class = "\\RockForms\\$name";
     $form = new $class($name);
-    $form->buildForm();
+
+    // we add honeypots at the very top
+    // this hopefully helps to trick spammers that try to submit the form
+    // after filling the fields one by one
     $form->addHoney();
+
+    $form->buildForm();
     $this->forms->set($name, $form);
 
     if ($rf) $rf->setTextdomain();
