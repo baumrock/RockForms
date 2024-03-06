@@ -17,9 +17,13 @@ use function ProcessWire\wire;
 
 class RockForm extends Form
 {
+  const honeyErrorMessage = "Sorry, we don't like Spam!";
+
   public $fieldTags = [];
   public $prependMarkup = false;
   public $appendMarkup = false;
+
+  public $isHoneySpam = false;
 
   /** @var ProcessWire */
   public $wire;
@@ -38,7 +42,10 @@ class RockForm extends Form
     $this->onRender[] = function (RockForm $form) {
       $form->rockforms()->rendered($form);
     };
-    $this->onValidate[] = [$this, 'processInput'];
+    $this->onValidate[] = function (RockForm $form) {
+      $form->validateAntiSpam();
+      $form->processInput();
+    };
     $this->init();
   }
 
@@ -56,7 +63,8 @@ class RockForm extends Form
     foreach ($honeyFields as $field) {
       if ($fields->$field) continue;
       $control = $this->addText($field, "Please enter $field")
-        ->addRule($this::BLANK);
+        ->setHtmlAttribute("autocomplete", "off")
+        ->addRule($this::BLANK, self::honeyErrorMessage);
       /** @var TextInput $control */
       $control->setOption("rockforms-honey", true);
     }
@@ -87,14 +95,16 @@ class RockForm extends Form
     $delay = $this->rockforms()->submitdelay;
     if (!$delay) return;
     $id = "timeonpage-" . uniqid();
-    $this->addText("timeonpage")
+    $control = $this->addText("timeonpage")
       ->setHtmlAttribute("id", $id)
       ->setHtmlAttribute("hidden", true)
+      ->addRule($this::FILLED)
       ->addRule(
         $this::MIN,
         "Please wait a moment before submitting the form and try again",
         $delay
       );
+    $control->setOption("rockforms-submitdelay", true);
     $file = realpath(__DIR__ . "/../includes/wait.php");
     $script = $this->wire->files->render($file, ['id' => $id]);
     $this->addMarkup("<div hidden>{timeonpage}$script</div>");
@@ -322,6 +332,21 @@ class RockForm extends Form
       $this->rockforms()->successParam,
       'string'
     );
+  }
+
+  /**
+   * Validate spam protection fields
+   * @return void
+   */
+  private function validateAntiSpam(): void
+  {
+    foreach ($this->getControls() as $control) {
+      if (!(
+        $control->getOption("rockforms-honey")
+        || $control->getOption("rockforms-submitdelay")
+      )) continue;
+      if (count($control->getErrors())) $this->isHoneySpam = true;
+    }
   }
 
   public function wire(): ProcessWire
