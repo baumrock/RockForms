@@ -16,6 +16,12 @@ use RockForms\Root;
  * @license COMMERCIAL PLEASE DO NOT DISTRIBUTE
  * @link https://www.baumrock.com
  */
+
+function rockforms(): RockForms
+{
+  return wire()->modules->get('RockForms');
+}
+
 class RockForms extends WireData implements Module, ConfigurableModule
 {
   public $confirmParam = "forms-confirm";
