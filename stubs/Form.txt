@@ -19,10 +19,35 @@ class {name} extends RockForm
 
   public function processInput()
   {
-    $values = $this->getValues();
-    if ($values->surname == 'baz') {
-      $this['surname']->addError('--- something went wrong on the server ---');
+    // this method will always be processed!
+    // you can do an early exit if the form has errors
+    if ($this->hasErrors()) return;
+
+    // $values = $this->getValues();
+    $values = $this->getValuesWithoutHoney();
+
+    // you can throw custom errors like this:
+    if ($values->surname === 'baz') {
+      $this
+        ->getComponent('surname')
+        ->addError('--- name baz not allowed ---');
     }
+
+    // you can save entries to database like this
+    if ($this->hasErrors()) return;
+    $fullname = "{$values->forename} {$values->surname}";
+    $this->saveEntry("Form submitted by $fullname");
+
+    // add url to rendered table in email
+    $values->url = $this->wire->page->url;
+
+    // or you could send an email using wiremail
+    $mail = new WireMail();
+    $mail->from("robot@yourdomain.com");
+    $mail->subject("Form Submission [$this->name]: $fullname");
+    $mail->to("you@yourdomain.com");
+    $mail->bodyHTML($this->renderTable($values));
+    $mail->send();
   }
 
   public function renderSuccess($values)
