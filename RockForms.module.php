@@ -5,6 +5,9 @@ namespace ProcessWire;
 use Nette\Forms\Control;
 use Nette\Forms\FormRenderer;
 use Nette\Forms\Validator;
+use Nette\InvalidStateException;
+use Nette\NotSupportedException;
+use Nette\Utils\RegexpException;
 use RockForms\Entries;
 use RockForms\Entry;
 use RockForms\Renderer\RockFormsRenderer;
@@ -26,7 +29,7 @@ class RockForms extends WireData implements Module, ConfigurableModule
 {
   public $confirmParam = "forms-confirm";
 
-  public $honeypotfields;
+  public $honeypotfields = "";
 
   /** @var WireArray */
   public $rendered;
@@ -63,6 +66,9 @@ class RockForms extends WireData implements Module, ConfigurableModule
     /** @var RockMigrations $rm */
     $rm = $this->wire->modules->get('RockMigrations');
     $rm->watch($this);
+
+    // create minified assets
+    $rm->minify(__DIR__ . "/assets");
 
     // sanitize success parameter
     $this->successParam = $this->wire->sanitizer->pageName($this->successParam);
@@ -130,6 +136,9 @@ class RockForms extends WireData implements Module, ConfigurableModule
     // this hopefully helps to trick spammers that try to submit the form
     // after filling the fields one by one
     $form->addHoney();
+
+    // add htmx markup if it is not disabled
+    if (!$this->noHTMX) $form->useHTMX();
 
     // add regular form fields
     $form->buildForm();
@@ -277,8 +286,25 @@ class RockForms extends WireData implements Module, ConfigurableModule
     );
   }
 
+  /**
+   * Render this form
+   */
   public function render(string $name)
   {
+    // if rockfrontend is installed we automatically add RockFrontend.js
+    if ($this->wire->modules->isInstalled("RockFrontend")) {
+      if (!$this->wire->config->dontLoadRockFormsJs) {
+        try {
+          rockfrontend()->scripts()->add(
+            __DIR__ . "/assets/RockForms.min.js",
+            "defer"
+          );
+        } catch (\Throwable $th) {
+          throw new WireException("Please upgrade RockFrontend: " . $th->getMessage());
+        }
+      }
+    }
+
     if (!$name) return false;
     if ($markup = $this->renderedMarkup->get($name)) return $markup;
     if (is_file($name)) {
@@ -354,6 +380,13 @@ class RockForms extends WireData implements Module, ConfigurableModule
     ]);
   }
 
+  public function scriptTag(): string
+  {
+    $file = $this->wire->config->urls($this) . "assets/RockForms.min.js";
+    $url = $this->wire->config->versionUrl($file);
+    return "<script src='$url' defer></script>";
+  }
+
   /**
    * Set global error messages for the form validator
    * This is to set global translations eg in /site/ready.php
@@ -425,6 +458,12 @@ class RockForms extends WireData implements Module, ConfigurableModule
       'checkboxLabel' => "Don't inject the live-validation script automatically",
       'notes' => "See [$url]($url)",
       'checked' => $this->noLiveValidation ? 'checked' : '',
+    ]);
+    $inputfields->add([
+      'type' => 'checkbox',
+      'name' => 'noHTMX',
+      'label' => 'Do NOT use HTMX for form submissions',
+      'checked' => $this->noHTMX ? 'checked' : '',
     ]);
     $inputfields->add([
       'type' => 'textarea',

@@ -4,6 +4,8 @@ namespace RockForms;
 
 use Nette\Forms\Controls\TextInput;
 use Nette\Forms\Form;
+use Nette\NotSupportedException;
+use Nette\Utils\RegexpException;
 use ProcessWire\ProcessWire;
 use ProcessWire\RockForms;
 use ProcessWire\RockFrontend;
@@ -161,6 +163,17 @@ class RockForm extends Form
   }
 
   /**
+   * Shortcut to get form element's id
+   * @return string
+   * @throws NotSupportedException
+   * @throws RegexpException
+   */
+  public function getID(): string
+  {
+    return $this->getElementPrototype()->id;
+  }
+
+  /**
    * Get current url
    * By default this will also include the query string
    * eg /foo/?bar=baz
@@ -229,7 +242,11 @@ class RockForm extends Form
         $this->wire()->session->rockformValues = false;
 
         // render success message
-        echo $this->renderSuccess($values);
+        // we wrap it in a div with the id of the form to make sure
+        // when using HTMX we know what content to swap!
+        echo "<div id='{$this->getID()}'>"
+          . $this->renderSuccess($values)
+          . "</div>";
         return;
       }
     }
@@ -332,6 +349,19 @@ class RockForm extends Form
       $this->rockforms()->successParam,
       'string'
     );
+  }
+
+  /**
+   * This will add the default HTMX html attributes to support htmx submissions
+   * @return void
+   * @throws NotSupportedException
+   * @throws RegexpException
+   */
+  public function useHTMX(): void
+  {
+    $this->setHtmlAttribute("hx-post", "./");
+    $this->setHtmlAttribute("hx-swap", "outerHTML");
+    $this->setHtmlAttribute("hx-select", "#" . $this->getID());
   }
 
   /**

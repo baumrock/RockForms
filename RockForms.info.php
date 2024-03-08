@@ -14,10 +14,13 @@ $info = [
   'autoload' => true,
   'singular' => true,
   'icon' => 'paper-plane-o',
+
+  // rockmigrations 4.1.0 for minify directory feature
   'requires' => [
     'PHP>=8.0',
-    'RockMigrations>=3.28.0',
+    'RockMigrations>=4.1.0',
   ],
+
   'installs' => [
     'ProcessRockForms',
   ],
