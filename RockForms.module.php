@@ -42,6 +42,8 @@ class RockForms extends WireData implements Module, ConfigurableModule
 
   private $forms;
 
+  private $formsWireDataObject;
+
   public function init()
   {
     require_once __DIR__ . "/RockFormsPage.php";
@@ -101,31 +103,14 @@ class RockForms extends WireData implements Module, ConfigurableModule
     return $entry->id ? $entry : false;
   }
 
-  /**
-   * @return RockForm
-   */
-  public function getForm($form, $silent = false)
+  public function getForm($form, $silent = false): RockForm|false
   {
     $name = (string)$form;
     if ($f = $this->forms->get($name)) return $f;
 
-    // look for forms in all RockForms folders
-    $dirs = [
-      $this->wire->config->paths->templates . "RockForms",
-    ];
-
-    // find form files in /site/modules/*/RockForms
-    $glob = glob($this->wire->config->paths->siteModules . "*/RockForms/*.php");
-    foreach ($glob as $file) $dirs[] = dirname($file);
-
-    // check all folders for forms file
-    foreach (array_unique($dirs) as $dir) {
-      if (!is_file("$dir/$name.php")) continue;
-      return $this->getFormFromFile("$dir/$name.php");
-    }
-
-    if ($silent) return false;
-    throw new WireException("Form $name not found");
+    $file = $this->getForms()->get($name);
+    if ($silent && !$file) return false;
+    return $this->getFormFromFile($file);
   }
 
   public function getFormFromFile($file)
@@ -157,6 +142,44 @@ class RockForms extends WireData implements Module, ConfigurableModule
     if ($rf) $rf->setTextdomain();
 
     return $form;
+  }
+
+  /**
+   * Get a WireData object holding all form names and file paths
+   * @return WireData
+   */
+  public function getForms(): WireData
+  {
+    if ($this->formsWireDataObject) return $this->formsWireDataObject;
+    $forms = new WireData();
+
+    // look for forms in all RockForms folders
+    // this is a hardcoded array but might be extendable in the future
+    // at the moment it looks in /site/templates/RockForms
+    // and in /site/modules/*/RockForms/
+    $files = array_merge(
+      glob($this->wire->config->paths->templates . "RockForms/*.php"),
+      glob($this->wire->config->paths->siteModules . "*/RockForms/*.php"),
+    );
+
+    // populate wiredata object
+    foreach ($files as $file) {
+      $name = pathinfo($file, PATHINFO_FILENAME);
+      $forms->set($name, $file);
+    }
+
+    return $this->formsWireDataObject = $forms;
+  }
+
+  /**
+   * Get array ready to be used in RockPageBuilder settings field
+   * @return array
+   * @throws WireException
+   */
+  public function getFormSelectArray(): array
+  {
+    $forms = $this->getForms()->getArray();
+    return array_combine(array_keys($forms), array_keys($forms));
   }
 
   public function handleConfirm(HookEvent $event)
@@ -417,7 +440,8 @@ class RockForms extends WireData implements Module, ConfigurableModule
       'name' => 'submitdelay',
       'label' => 'Submit Delay (in Seconds)',
       'value' => $this->submitdelay,
-      'notes' => 'Spam-Bots usually fill forms very quickly - humans dont!',
+      'notes' => 'Spam-Bots usually fill forms very quickly - humans dont! Forms submitted within the given delay are considered spam.
+        I suggest using 2 seconds.',
     ]);
     return $inputfields;
   }
