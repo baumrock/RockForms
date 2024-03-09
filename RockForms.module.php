@@ -109,17 +109,17 @@ class RockForms extends WireData implements Module, ConfigurableModule
     return $entry->id ? $entry : false;
   }
 
-  public function getForm($form, $silent = false): RockForm|false
+  public function getForm($form, $silent = false, $context = null): RockForm|false
   {
     $name = (string)$form;
     if ($f = $this->forms->get($name)) return $f;
 
     $file = $this->getForms()->get($name);
     if ($silent && !$file) return false;
-    return $this->getFormFromFile($file);
+    return $this->getFormFromFile($file, $context);
   }
 
-  public function getFormFromFile($file)
+  public function getFormFromFile($file, $context = null)
   {
     if (!is_file($file)) throw new WireException("File $file not found");
     $name = pathinfo($file)['filename'];
@@ -131,6 +131,13 @@ class RockForms extends WireData implements Module, ConfigurableModule
 
     $class = "\\RockForms\\$name";
     $form = new $class($name);
+
+    // set context
+    if (is_array($context)) $context = (new WireData())->setArray($context);
+    if (!$context instanceof WireData) {
+      throw new WireException("Context must be either array or WireData");
+    }
+    $form->context = $context;
 
     // we add honeypots at the very top
     // this hopefully helps to trick spammers that try to submit the form
@@ -288,8 +295,12 @@ class RockForms extends WireData implements Module, ConfigurableModule
 
   /**
    * Render this form
+   *
+   * $context is to provide context for your form, eg you might want to provide
+   * different mailto addresses for the same form depending on where the form
+   * is rendered. The context will be available in your form as $form->context
    */
-  public function render(string $name)
+  public function render(string $name, $context = null)
   {
     // if rockfrontend is installed we automatically add RockFrontend.js
     if ($this->wire->modules->isInstalled("RockFrontend")) {
@@ -308,8 +319,10 @@ class RockForms extends WireData implements Module, ConfigurableModule
     if (!$name) return false;
     if ($markup = $this->renderedMarkup->get($name)) return $markup;
     if (is_file($name)) {
-      $form = $this->getFormFromFile($name);
-    } else $form = $this->getForm($name);
+      $form = $this->getFormFromFile($name, $context);
+    } else {
+      $form = $this->getForm($name, context: $context);
+    }
     if ($form instanceof RockForm) {
       $markup = $form->renderReturn();
       $this->renderedMarkup->set($form->name, $markup);

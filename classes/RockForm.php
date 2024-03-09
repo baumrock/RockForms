@@ -21,6 +21,7 @@ class RockForm extends Form
 {
   const honeyErrorMessage = "Sorry, we don't like Spam!";
 
+  public $context;
   public $fieldTags = [];
   public $prependMarkup = false;
   public $appendMarkup = false;
