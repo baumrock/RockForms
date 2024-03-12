@@ -8,9 +8,9 @@ use Nette\Forms\Form;
 return [
   CsrfProtection::PROTECTION => 'Ihre Sitzung ist abgelaufen. Bitte kehren Sie zur Startseite zurück und versuchen Sie es erneut.',
   Form::EQUAL => 'Bitte geben Sie %s ein.',
-  Form::NOT_EQUAL => 'Dieser Wert sollte nicht %s sein.',
+  Form::NOT_EQUAL => 'Dieser Wert darf nicht %s sein.',
   Form::FILLED => 'Dieses Feld ist erforderlich.',
-  Form::BLANK => 'Dieses Feld sollte leer sein.',
+  Form::BLANK => 'Dieses Feld muss leer sein.',
   Form::MIN_LENGTH => 'Bitte geben Sie mindestens %d Zeichen ein.',
   Form::MAX_LENGTH => 'Bitte geben Sie nicht mehr als %d Zeichen ein.',
   Form::LENGTH => 'Bitte geben Sie einen Wert zwischen %d und %d Zeichen ein.',

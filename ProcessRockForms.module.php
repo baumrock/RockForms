@@ -54,9 +54,11 @@ class ProcessRockForms extends Process
     // copy stubfile to /site/templates
     $content = $this->wire->files->fileGetContents(__DIR__ . "/stubs/Form.txt");
     $content = str_replace('{name}', $name, $content);
-    $dst = $this->wire->config->paths->templates . "RockForms/$name.php";
-    $this->wire->files->filePutContents($dst, $content);
-    $this->created = $dst;
+    $dst = $this->wire->config->paths->templates . "RockForms";
+    $this->wire->files->mkdir($dst);
+    $file = "$dst/$name.php";
+    $this->wire->files->filePutContents($file, $content);
+    $this->created = $file;
   }
 
   /**

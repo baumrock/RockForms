@@ -5,6 +5,9 @@ namespace ProcessWire;
 use Nette\Forms\Control;
 use Nette\Forms\FormRenderer;
 use Nette\Forms\Validator;
+use Nette\InvalidStateException;
+use Nette\NotSupportedException;
+use Nette\Utils\RegexpException;
 use RockForms\Entries;
 use RockForms\Entry;
 use RockForms\Renderer\RockFormsRenderer;
@@ -16,9 +19,17 @@ use RockForms\Root;
  * @license COMMERCIAL PLEASE DO NOT DISTRIBUTE
  * @link https://www.baumrock.com
  */
+
+function rockforms(): RockForms
+{
+  return wire()->modules->get('RockForms');
+}
+
 class RockForms extends WireData implements Module, ConfigurableModule
 {
   public $confirmParam = "forms-confirm";
+
+  public $honeypotfields = "";
 
   /** @var WireArray */
   public $rendered;
@@ -27,9 +38,14 @@ class RockForms extends WireData implements Module, ConfigurableModule
   public $renderedMarkup;
 
   public $submitCount;
+
   public $successParam = false;
 
+  public $submitdelay = 0;
+
   private $forms;
+
+  private $formsWireDataObject;
 
   public function init()
   {
@@ -50,6 +66,9 @@ class RockForms extends WireData implements Module, ConfigurableModule
     /** @var RockMigrations $rm */
     $rm = $this->wire->modules->get('RockMigrations');
     $rm->watch($this);
+
+    // create minified assets
+    $rm->minify(__DIR__ . "/assets");
 
     // sanitize success parameter
     $this->successParam = $this->wire->sanitizer->pageName($this->successParam);
@@ -90,34 +109,17 @@ class RockForms extends WireData implements Module, ConfigurableModule
     return $entry->id ? $entry : false;
   }
 
-  /**
-   * @return RockForm
-   */
-  public function getForm($form, $silent = false)
+  public function getForm($form, $silent = false, $context = null): RockForm|false
   {
     $name = (string)$form;
     if ($f = $this->forms->get($name)) return $f;
 
-    // look for forms in all RockForms folders
-    $dirs = [
-      $this->wire->config->paths->templates . "RockForms",
-    ];
-
-    // find form files in /site/modules/*/RockForms
-    $glob = glob($this->wire->config->paths->siteModules . "*/RockForms/*.php");
-    foreach ($glob as $file) $dirs[] = dirname($file);
-
-    // check all folders for forms file
-    foreach (array_unique($dirs) as $dir) {
-      if (!is_file("$dir/$name.php")) continue;
-      return $this->getFormFromFile("$dir/$name.php");
-    }
-
-    if ($silent) return false;
-    throw new WireException("Form $name not found");
+    $file = $this->getForms()->get($name);
+    if ($silent && !$file) return false;
+    return $this->getFormFromFile($file, $context);
   }
 
-  public function getFormFromFile($file)
+  public function getFormFromFile($file, $context = null)
   {
     if (!is_file($file)) throw new WireException("File $file not found");
     $name = pathinfo($file)['filename'];
@@ -129,12 +131,71 @@ class RockForms extends WireData implements Module, ConfigurableModule
 
     $class = "\\RockForms\\$name";
     $form = new $class($name);
+
+    // set context
+    if (is_array($context)) $context = (new WireData())->setArray($context);
+    if (!$context instanceof WireData) {
+      throw new WireException("Context must be either array or WireData");
+    }
+    $form->context = $context;
+
+    // we add honeypots at the very top
+    // this hopefully helps to trick spammers that try to submit the form
+    // after filling the fields one by one
+    $form->addHoney();
+
+    // add htmx markup if it is not disabled
+    if (!$this->noHTMX) $form->useHTMX();
+
+    // add regular form fields
     $form->buildForm();
+
+    // add submit delay
+    $form->addSubmitDelay();
+
     $this->forms->set($name, $form);
 
     if ($rf) $rf->setTextdomain();
 
     return $form;
+  }
+
+  /**
+   * Get a WireData object holding all form names and file paths
+   * @return WireData
+   */
+  public function getForms(): WireData
+  {
+    if ($this->formsWireDataObject) return $this->formsWireDataObject;
+    $forms = new WireData();
+
+    // look for forms in all RockForms folders
+    // this is a hardcoded array but might be extendable in the future
+    // at the moment it looks in /site/templates/RockForms
+    // and in /site/modules/*/RockForms/
+    $files = array_merge(
+      glob($this->wire->config->paths->templates . "RockForms/*.php"),
+      glob($this->wire->config->paths->siteModules . "*/RockForms/*.php"),
+    );
+
+    // populate wiredata object
+    foreach ($files as $file) {
+      $name = pathinfo($file, PATHINFO_FILENAME);
+      $forms->set($name, $file);
+    }
+
+    return $this->formsWireDataObject = $forms;
+  }
+
+  /**
+   * Get array ready to be used in RockPageBuilder settings field
+   * @return array
+   * @throws WireException
+   */
+  public function getFormSelectArray(): array
+  {
+    $forms = $this->getForms()->getArray();
+    return array_combine(array_keys($forms), array_keys($forms));
   }
 
   public function handleConfirm(HookEvent $event)
@@ -156,6 +217,19 @@ class RockForms extends WireData implements Module, ConfigurableModule
     return $this->wire->files->render(__DIR__ . "/lib/confirm.php", [
       'event' => $event,
     ]);
+  }
+
+  /**
+   * Get names of honeyfields to add to each form
+   * @return array
+   */
+  public function honeyFields(): array
+  {
+    $arr = explode("\n", $this->honeypotfields);
+    $arr = array_map(function ($item) {
+      return $this->wire->sanitizer->fieldName($item);
+    }, $arr);
+    return array_filter($arr);
   }
 
   public function hookAddAssets(HookEvent $event)
@@ -219,13 +293,36 @@ class RockForms extends WireData implements Module, ConfigurableModule
     );
   }
 
-  public function render(string $name)
+  /**
+   * Render this form
+   *
+   * $context is to provide context for your form, eg you might want to provide
+   * different mailto addresses for the same form depending on where the form
+   * is rendered. The context will be available in your form as $form->context
+   */
+  public function render(string $name, $context = null)
   {
+    // if rockfrontend is installed we automatically add RockFrontend.js
+    if ($this->wire->modules->isInstalled("RockFrontend")) {
+      if (!$this->wire->config->dontLoadRockFormsJs) {
+        try {
+          rockfrontend()->scripts()->add(
+            __DIR__ . "/assets/RockForms.min.js",
+            "defer"
+          );
+        } catch (\Throwable $th) {
+          throw new WireException("Please upgrade RockFrontend: " . $th->getMessage());
+        }
+      }
+    }
+
     if (!$name) return false;
     if ($markup = $this->renderedMarkup->get($name)) return $markup;
     if (is_file($name)) {
-      $form = $this->getFormFromFile($name);
-    } else $form = $this->getForm($name);
+      $form = $this->getFormFromFile($name, $context);
+    } else {
+      $form = $this->getForm($name, context: $context);
+    }
     if ($form instanceof RockForm) {
       $markup = $form->renderReturn();
       $this->renderedMarkup->set($form->name, $markup);
@@ -294,6 +391,13 @@ class RockForms extends WireData implements Module, ConfigurableModule
       'template' => Root::tpl,
       'parent' => 1,
     ]);
+  }
+
+  public function scriptTag(): string
+  {
+    $file = $this->wire->config->urls($this) . "assets/RockForms.min.js";
+    $url = $this->wire->config->versionUrl($file);
+    return "<script src='$url' defer></script>";
   }
 
   /**
@@ -367,6 +471,29 @@ class RockForms extends WireData implements Module, ConfigurableModule
       'checkboxLabel' => "Don't inject the live-validation script automatically",
       'notes' => "See [$url]($url)",
       'checked' => $this->noLiveValidation ? 'checked' : '',
+    ]);
+    $inputfields->add([
+      'type' => 'checkbox',
+      'name' => 'noHTMX',
+      'label' => 'Do NOT use HTMX for form submissions',
+      'checked' => $this->noHTMX ? 'checked' : '',
+    ]);
+    $inputfields->add([
+      'type' => 'textarea',
+      'name' => 'honeypotfields',
+      'description' => 'To use honeypot fields for your forms enter one fieldname per line. Existing fieldnames will be skipped, so make sure to use good looking names like "message", "comment", "email" or such that you dont use yourself.',
+      'label' => 'Honeypot Fields',
+      'value' => $this->honeypotfields,
+      'notes' => "Enter one per line. If you don't want to use honeypots at all leave this field empty.
+        Note: add .rf-hny { display: none; } to your site's CSS to hide the honeypot fields.",
+    ]);
+    $inputfields->add([
+      'type' => 'integer',
+      'name' => 'submitdelay',
+      'label' => 'Submit Delay (in Seconds)',
+      'value' => $this->submitdelay,
+      'notes' => 'Spam-Bots usually fill forms very quickly - humans dont! Forms submitted within the given delay are considered spam.
+        I suggest using 2 seconds.',
     ]);
     return $inputfields;
   }

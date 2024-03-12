@@ -20,7 +20,7 @@ class RockFormsRenderer extends DefaultFormRenderer
 
     // add special tags to the container for individual css styling
     // this is a RockForms feature, so it will not work in Nette FormRenderers
-    $this->wrappers['pair']['container'] = 'div class="field-{fieldname} type-{fieldtype}"';
+    $this->wrappers['pair']['container'] = 'div class="field-{fieldname} type-{fieldtype} {rockforms-honey}"';
     $this->wrappers['error']['container'] = 'div class="form-errors"';
     $this->wrappers['error']['item'] = 'div class="form-error"';
 
@@ -136,6 +136,10 @@ class RockFormsRenderer extends DefaultFormRenderer
     /** @var BaseControl $control */
     $markup = str_replace("{fieldname}", $control->name, $markup);
     $markup = str_replace("{fieldtype}", $control->getOption('type'), $markup);
+
+    $hny = $control->getOption('rockforms-honey') ? "rf-hny" : "";
+    $markup = str_replace("{rockforms-honey}", $hny, $markup);
+
     return $markup;
   }
 

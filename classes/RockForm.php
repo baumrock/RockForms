@@ -2,7 +2,10 @@
 
 namespace RockForms;
 
+use Nette\Forms\Controls\TextInput;
 use Nette\Forms\Form;
+use Nette\NotSupportedException;
+use Nette\Utils\RegexpException;
 use ProcessWire\ProcessWire;
 use ProcessWire\RockForms;
 use ProcessWire\RockFrontend;
@@ -11,13 +14,19 @@ use ProcessWire\WireData;
 use ReflectionClass;
 use RockForms\Controls\Markup;
 
+use function ProcessWire\rockmigrations;
 use function ProcessWire\wire;
 
 class RockForm extends Form
 {
+  const honeyErrorMessage = "Sorry, we don't like Spam!";
+
+  public $context;
   public $fieldTags = [];
   public $prependMarkup = false;
   public $appendMarkup = false;
+
+  public $isHoneySpam = false;
 
   /** @var ProcessWire */
   public $wire;
@@ -36,12 +45,32 @@ class RockForm extends Form
     $this->onRender[] = function (RockForm $form) {
       $form->rockforms()->rendered($form);
     };
-    $this->onValidate[] = [$this, 'processInput'];
+    $this->onValidate[] = function (RockForm $form) {
+      $form->validateAntiSpam();
+      $form->processInput();
+    };
     $this->init();
   }
 
   public function init()
   {
+  }
+
+  /**
+   * Add honeypot fields to form
+   */
+  public function addHoney(): void
+  {
+    $fields = $this->getFields();
+    $honeyFields = $this->rockforms()->honeyFields();
+    foreach ($honeyFields as $field) {
+      if ($fields->$field) continue;
+      $control = $this->addText($field, "Please enter $field")
+        ->setHtmlAttribute("autocomplete", "off")
+        ->addRule($this::BLANK, self::honeyErrorMessage);
+      /** @var TextInput $control */
+      $control->setOption("rockforms-honey", true);
+    }
   }
 
   /**
@@ -64,12 +93,32 @@ class RockForm extends Form
     $this->addComponent($control, $name ?: uniqid());
   }
 
+  public function addSubmitDelay(): void
+  {
+    $delay = $this->rockforms()->submitdelay;
+    if (!$delay) return;
+    $id = "timeonpage-" . uniqid();
+    $control = $this->addText("timeonpage")
+      ->setHtmlAttribute("id", $id)
+      ->setHtmlAttribute("hidden", true)
+      ->addRule($this::FILLED)
+      ->addRule(
+        $this::MIN,
+        "Please wait a moment before submitting the form and try again",
+        $delay
+      );
+    $control->setOption("rockforms-submitdelay", true);
+    $file = realpath(__DIR__ . "/../includes/wait.php");
+    $script = $this->wire->files->render($file, ['id' => $id]);
+    $this->addMarkup("<div hidden>{timeonpage}$script</div>");
+  }
+
   /**
    * Append markup after the <form> element
    */
   public function appendMarkup(string $markup): void
   {
-    $this->appendMarkup = $markup;
+    $this->appendMarkup .= $markup;
   }
 
   /**
@@ -105,6 +154,27 @@ class RockForm extends Form
   }
 
   /**
+   * Get all fields of the form as WireData object (for nicer syntax)
+   */
+  public function getFields(): WireData
+  {
+    $names = [];
+    foreach ($this->getControls() as $c) $names[$c->name] = $c;
+    return (new WireData)->setArray($names);
+  }
+
+  /**
+   * Shortcut to get form element's id
+   * @return string
+   * @throws NotSupportedException
+   * @throws RegexpException
+   */
+  public function getID(): string
+  {
+    return $this->getElementPrototype()->id;
+  }
+
+  /**
    * Get current url
    * By default this will also include the query string
    * eg /foo/?bar=baz
@@ -114,6 +184,20 @@ class RockForm extends Form
     if (!$params) return $this->wire->input->url();
     $query = $this->wire->input->queryString();
     return $this->wire->input->url() . ($query ? "?$query" : "");
+  }
+
+  /**
+   * Get submitted values without honeypot fields
+   */
+  public function getValuesWithoutHoney(): WireData
+  {
+    $values = new WireData();
+    $values->setArray($this->getValues('array'));
+    foreach ($this->getFields() as $name => $field) {
+      if (!$field->getOption("rockforms-honey")) continue;
+      $values->remove($name);
+    }
+    return $values;
   }
 
   /**
@@ -159,7 +243,11 @@ class RockForm extends Form
         $this->wire()->session->rockformValues = false;
 
         // render success message
-        echo $this->renderSuccess($values);
+        // we wrap it in a div with the id of the form to make sure
+        // when using HTMX we know what content to swap!
+        echo "<div id='{$this->getID()}'>"
+          . $this->renderSuccess($values)
+          . "</div>";
         return;
       }
     }
@@ -176,6 +264,12 @@ class RockForm extends Form
     ob_start();
     echo $this->render(...$args);
     return ob_get_clean();
+  }
+
+  public function renderTable($values = null): string
+  {
+    if (!$values) $values = $this->getValues();
+    return rockmigrations()->renderTable($values);
   }
 
   public function rockforms(): RockForms
@@ -195,7 +289,7 @@ class RockForm extends Form
 
   public function saveEntry($title, $values = null): Entry
   {
-    if (!$values) $values = $this->getValues('array');
+    if (!$values) $values = $this->getValuesWithoutHoney()->getArray();
 
     // save entry
     $entry = new Entry();
@@ -256,6 +350,34 @@ class RockForm extends Form
       $this->rockforms()->successParam,
       'string'
     );
+  }
+
+  /**
+   * This will add the default HTMX html attributes to support htmx submissions
+   * @return void
+   * @throws NotSupportedException
+   * @throws RegexpException
+   */
+  public function useHTMX(): void
+  {
+    $this->setHtmlAttribute("hx-post", "./");
+    $this->setHtmlAttribute("hx-swap", "outerHTML");
+    $this->setHtmlAttribute("hx-select", "#" . $this->getID());
+  }
+
+  /**
+   * Validate spam protection fields
+   * @return void
+   */
+  private function validateAntiSpam(): void
+  {
+    foreach ($this->getControls() as $control) {
+      if (!(
+        $control->getOption("rockforms-honey")
+        || $control->getOption("rockforms-submitdelay")
+      )) continue;
+      if (count($control->getErrors())) $this->isHoneySpam = true;
+    }
   }
 
   public function wire(): ProcessWire
