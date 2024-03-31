@@ -70,11 +70,18 @@ This will send an (admittedly ugly) email to you and your client. If you also wa
 ```php
 public function processInput()
 {
-  $condition = true;
-
-  if($condition) {
+  // throw error on the form itself
+  if($foo === 'bar') {
     $this->addError("Something is wrong");
     return;
+  }
+
+  // throw error on a single field aka component
+  $values = $this->getValuesWithoutHoney();
+  if ($values->surname === 'baz') {
+    $this
+      ->getComponent('surname')
+      ->addError('--- name baz not allowed ---');
   }
 }
 ```
