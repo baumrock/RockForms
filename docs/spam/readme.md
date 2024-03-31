@@ -2,6 +2,14 @@
 
 RockForms makes it easy to protect your forms from spambots.
 
+## Submit Delay
+
+RockForms introduces an innovative spam protection method that enhances user experience while effectively keeping bots at bay. This method involves a hidden text field within the form, dynamically populated through JavaScript as the user navigates the site. The field's value increments every second, tracking the user's visit duration.
+
+This technique is based on the simple principle that bots submit forms almost immediately upon page load, unlike human users who take time. Thus, the hidden field's value serves as an excellent indicator of genuine user activity, distinguishing legitimate submissions from potential spam without intrusive verification methods.
+
+Pro-Tip: Combine this technique with the "WireRequestBlocker" Pro Module for enhanced protection, blocking bot IPs from your site and conserving server resources for genuine submissions.
+
 ## Honeypot Fields
 
 <img src=honey.jpg class=blur>
