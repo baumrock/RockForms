@@ -1,3 +1,18 @@
+## [1.0.0](https://github.com/baumrock/RockForms/compare/v0.17.0...v1.0.0) (2024-03-31)
+
+
+### ⚠ BREAKING CHANGES
+
+* Just bumping version number to 1.0.0
+
+### Features
+
+* add icons to templates ([fcf3ea8](https://github.com/baumrock/RockForms/commit/fcf3ea86aa8ab72b4adc593db882bf270223a3ad))
+* improve renderer and add docs ([0244b4f](https://github.com/baumrock/RockForms/commit/0244b4faa9a93317be0341bdf71479f28ed9e11c))
+* initial public release ([a228b30](https://github.com/baumrock/RockForms/commit/a228b30ab9ac600a2d471d2a31a3d95b15384c78))
+* refactoring and cleanup GUI ([ccf0a01](https://github.com/baumrock/RockForms/commit/ccf0a0149555b4eef3965b5ebad6efca569270e0))
+* support multi forms on one page ([cc8342a](https://github.com/baumrock/RockForms/commit/cc8342a21328833819f6a43b99332be547e11430))
+
 ## [0.17.0](https://github.com/baumrock/RockForms/compare/v0.16.0...v0.17.0) (2024-03-12)
 
 
@@ -51,17 +66,4 @@
 ### Bug Fixes
 
 * add missing uk-select class ([74765b9](https://github.com/baumrock/RockForms/commit/74765b94ee1a96364ae9500a4ee4298d1781d676))
-
-## [0.14.0](https://github.com/baumrock/RockForms/compare/v0.13.1...v0.14.0) (2023-07-07)
-
-
-### Features
-
-* add getField() alias for getComponent() ([d19856a](https://github.com/baumrock/RockForms/commit/d19856a3832e5983d145de76b605682a9c6401ad))
-* support custom values in saveEntry() ([a235d53](https://github.com/baumrock/RockForms/commit/a235d53b9891dbe460db2cd7e2e7ec9ca62fa02a))
-
-
-### Bug Fixes
-
-* set textdomain in getFormFromFile ([bd4cfc9](https://github.com/baumrock/RockForms/commit/bd4cfc9dc1922c28bda3bd03b89b1e811660c2c8))
 
