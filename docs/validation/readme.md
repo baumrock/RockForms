@@ -18,7 +18,7 @@ $rockforms->setErrors('de');
 
 // use custom translations
 $rockforms->setErrors([
-  Nette\Forms\Form::FILLED => 'Bitte ausfüllen, du Faulpelz!',
+  Nette\Forms\Form::FILLED => 'Fill this out, you lazybones!',
 ]);
 ```
 

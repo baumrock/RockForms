@@ -13,6 +13,16 @@ class Entries extends Page
   const tpl = "rockforms_entries";
   const prefix = "rockforms_entries_";
 
+  public function addable()
+  {
+    return false;
+  }
+
+  public function editable()
+  {
+    return false;
+  }
+
   public function migrate()
   {
     $rm = $this->rockmigrations();
@@ -27,6 +37,7 @@ class Entries extends Page
           ],
           'sortfield' => '-id',
           'noChildren' => true,
+          'icon' => 'files-o',
         ],
       ],
     ]);

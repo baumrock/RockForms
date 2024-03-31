@@ -8,6 +8,7 @@ use RockForms\Renderer\UIkit;
 
 class Optional extends RockForm
 {
+  const CSRF = false;
 
   public function init()
   {

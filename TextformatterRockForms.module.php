@@ -15,6 +15,7 @@ class TextformatterRockForms extends Textformatter
       'title' => 'RockForms',
       'version' => '1.0.0',
       'summary' => 'Demo Textformatter',
+      'requires' => 'RockForms',
     ];
   }
 

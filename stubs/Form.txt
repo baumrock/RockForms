@@ -2,8 +2,12 @@
 
 namespace RockForms;
 
+use ProcessWire\WireMail;
+
 class {name} extends RockForm
 {
+  // to disable CSRF for this form
+  const CSRF = false;
 
   public function buildForm()
   {
@@ -13,7 +17,7 @@ class {name} extends RockForm
       ->setRequired("We need your first name to show it!");
     $f = $form->addText("surname", "Enter your given name")
       ->getLabelPrototype();
-    bd($f);
+    // bd($f);
     $form->addSubmit("submit", "Submit your name");
   }
 

@@ -4,6 +4,7 @@ namespace RockForms;
 
 class Alpine extends RockForm
 {
+  const CSRF = false;
 
   public function buildForm()
   {
@@ -13,10 +14,10 @@ class Alpine extends RockForm
     );
     $this->setHtmlAttribute("x-data", "{name: 'Bernhard'}");
     $this->setRockFormsRenderer("UIkit");
-    $this->addMarkup("<div class='uk-margin'>
-      You habe a lovely name, <strong x-text='name'></strong>!
-      </div>");
     $this->addText("name", "Enter your name")
       ->setHtmlAttribute('x-model', 'name');
+    $this->addMarkup("<div class='uk-margin'>
+      You have a lovely name, <strong x-text='name'></strong>!
+      </div>");
   }
 }

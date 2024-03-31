@@ -11,6 +11,11 @@ class Root extends Page
 
   const tpl = "rockforms_root";
 
+  public function editable()
+  {
+    return false;
+  }
+
   public function migrate()
   {
     $rm = $this->rockmigrations();
@@ -18,6 +23,7 @@ class Root extends Page
       'fields' => [],
       'templates' => [
         self::tpl => [
+          'icon' => 'paper-plane-o',
           'noChildren' => true,
           'noParents' => true,
         ],

@@ -1,40 +1,13 @@
 # Creating Forms
 
-There are two ways you can create your forms:
+In RockForms every form is presented of one PHP file and is itself its own PHP class. If you are new to OOP, don't worry! RockForms has a GUI that creates that file for you:
 
-1. Direct output in a template file
-1. As a custom PHP class (recommended!)
+<img src=rockforms.png class=blur>
 
-## Direct Output
+Theoretically you can create your form files in any folder you like (for example in custom modules), but the GUI will place it in the default folder, which is `/site/assets/RockForms`.
 
-You can simply create forms from within your ProcessWire template files:
+A basic RockForm looks like this:
 
-`label: /site/templates/includes/footer.php`
-```php
-<footer>
-  <?php
-  $form = new RockForm("demo");
-  $form->addText("forename", "Enter your first name");
-  $form->addText("surname", "Enter your given name");
-  $form->addSubmit("submit", "Submit your name");
-  if ($form->showSuccess($values)) {
-    echo "<strong>Thank you for submitting the form!</strong>";
-  } else {
-    echo $form->render();
-  }
-  ?>
-</footer>
-```
-
-Note that this approach is limited though and I find it a lot better to place my forms in a dedicated file.
-
-## Custom File
-
-This is the recommended way because it provides a lot more structure and a lot more options. It also helps to make your project better maintainable!
-
-You can create your file in any folder you like, but the default folder is `/site/assets/RockForms`. In this example we will create a simple `Newsletter` form:
-
-`label: /site/assets/RockForms/Newsletter.php`
 ```php
 <?php
 
@@ -42,8 +15,25 @@ namespace RockForms;
 
 class Newsletter extends RockForm
 {
+
+  public function buildForm()
+  {
+    // field setup
+  }
+
+  public function processInput()
+  {
+    // form processing after submit
+  }
+
+  public function renderSuccess($values)
+  {
+    // render success message
+  }
 }
 ```
+
+The boilerplate file that is created by RockForms when using the GUI comes with a lot of helpful comments as well!
 
 ### Adding Fields
 
@@ -98,8 +88,6 @@ echo $rockforms->render("Newsletter");
 ```
 
 ### Success Message
-
-Similar to the `showSuccess()` switch on direct output we have the `renderSuccess()` method in OOP style:
 
 ```php
 public function renderSuccess($values)

@@ -4,10 +4,12 @@ namespace RockForms;
 
 class Grid extends RockForm
 {
+  const CSRF = false;
+
   public function buildForm()
   {
     $this->setRockFormsRenderer("UIkit");
-    $this->addText('forename', 'Forename');
+    $this->addText('forename', 'Forename')->setRequired('Example Error');
     $this->addText('surname', 'Surname');
     $this->addMarkup("<div class='uk-child-width-1-2 uk-grid-collapse' uk-grid>
       <div>{forename}</div>

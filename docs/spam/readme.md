@@ -2,6 +2,14 @@
 
 RockForms makes it easy to protect your forms from spambots.
 
+## Submit Delay
+
+RockForms introduces an innovative spam protection method that enhances user experience while effectively keeping bots at bay. This method involves a hidden text field within the form, dynamically populated through JavaScript as the user navigates the site. The field's value increments every second, tracking the user's visit duration.
+
+This technique is based on the simple principle that bots submit forms almost immediately upon page load, unlike human users who take time. Thus, the hidden field's value serves as an excellent indicator of genuine user activity, distinguishing legitimate submissions from potential spam without intrusive verification methods.
+
+Pro-Tip: Combine this technique with the "WireRequestBlocker" Pro Module for enhanced protection, blocking bot IPs from your site and conserving server resources for genuine submissions.
+
 ## Honeypot Fields
 
 <img src=honey.jpg class=blur>
@@ -48,12 +56,4 @@ Integration is straightforward! Simply add a custom check to your Form's `proces
 
 ## CSRF
 
-Cross-Site Request Forgery (CSRF) is a common attack vector on the web, where unauthorized commands are transmitted from a user that the web application trusts. Typically, protection against CSRF involves generating a unique token for each user session and validating this token with each request to ensure its authenticity. However, integrating CSRF protection in environments that utilize caching mechanisms like ProCache can be challenging.
-
-ProCache is designed to serve static copies of your web pages for enhanced performance. Since CSRF tokens are dynamic and unique for each session, they conflict with the static nature of cached pages. This means that traditional CSRF protection methods that rely on server-generated tokens cannot be directly used with ProCache.
-
-As a workaround to this limitation, RockForms employs alternative anti-spam techniques that do not require dynamic server requests. One such technique is the use of honeypot fields, which are already discussed in this document. Honeypot fields are effective against automated spam without needing to alter the static cache.
-
-In addition to honeypots, we are exploring the implementation of a JavaScript-based solution that measures the time taken to fill and submit a form. Bots typically submit forms much faster than a human would, so by setting a minimum time threshold for form submission, we can further mitigate spam without the need for server-side token generation or validation. This approach will complement our existing methods and provide robust spam protection that is fully compatible with ProCache.
-
-By leveraging these techniques, RockForms aims to provide effective spam protection while maintaining compatibility with caching solutions, ensuring that your site's performance is not compromised.
+Please see the docs about <a href="../csrf/">CSRF + ProCache</a>.

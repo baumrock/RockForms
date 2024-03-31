@@ -5,9 +5,6 @@ namespace ProcessWire;
 use Nette\Forms\Control;
 use Nette\Forms\FormRenderer;
 use Nette\Forms\Validator;
-use Nette\InvalidStateException;
-use Nette\NotSupportedException;
-use Nette\Utils\RegexpException;
 use RockForms\Entries;
 use RockForms\Entry;
 use RockForms\Renderer\RockFormsRenderer;
@@ -27,6 +24,8 @@ function rockforms(): RockForms
 
 class RockForms extends WireData implements Module, ConfigurableModule
 {
+  const csrfstring = "rockforms-csrf";
+
   public $confirmParam = "forms-confirm";
 
   public $honeypotfields = "";
@@ -54,6 +53,10 @@ class RockForms extends WireData implements Module, ConfigurableModule
     $this->wire->classLoader->addNamespace("RockForms", __DIR__ . "/classes");
     $this->wire->classLoader->addNamespace("RockForms", __DIR__ . "/PageClasses");
     $this->wire->classLoader->addNamespace("RockForms\Renderer", __DIR__ . "/RockFormsRenderer");
+    $this->wire->classLoader->addNamespace(
+      "RockForms\Renderer",
+      $this->wire->config->paths->templates . "RockForms/Renderer"
+    );
     $this->wire->classLoader->addNamespace("RockForms\Controls", __DIR__ . "/controls");
     $this->wire->classLoader->addNamespace(
       "RockForms",
@@ -75,9 +78,15 @@ class RockForms extends WireData implements Module, ConfigurableModule
     if (!$this->successParam) $this->successParam = 'form-success';
 
     // hooks
-    $this->wire->addHookAfter("Page::render", $this, "hookDoubleSubmit");
-    $this->wire->addHookAfter("Page::render", $this, "hookAddAssets");
-    $this->wire->addHook("/" . $this->confirmParam . "/{key}/", $this, "handleConfirm");
+    wire()->addHookAfter("Page::render", $this, "hookDoubleSubmit");
+    wire()->addHookAfter("Page::render", $this, "hookAddAssets");
+    wire()->addHookAfter("Page::render", $this, "hookAddLoader");
+    wire()->addHook("/" . $this->confirmParam . "/{key}/", $this, "handleConfirm");
+    wire()->addHook("/rockforms-csrf/", $this, "hookCreateCSRF");
+
+    // hide rootpage from tree
+    $this->addHookAfter("ProcessPageList::find", $this, "hideRootPage");
+    $this->addHookBefore('ProcessPageListRender::getNumChildren', $this, "hookNumChildren");
   }
 
   public function checkbox($val, $tooltip = false)
@@ -129,15 +138,21 @@ class RockForms extends WireData implements Module, ConfigurableModule
     $rf = $this->rockfrontend();
     if ($rf) $rf->setTextdomain($file);
 
-    $class = "\\RockForms\\$name";
-    $form = new $class($name);
-
     // set context
+    if (!$context) $context = [];
     if (is_array($context)) $context = (new WireData())->setArray($context);
     if (!$context instanceof WireData) {
       throw new WireException("Context must be either array or WireData");
     }
+
+    $class = "\\RockForms\\$name";
+    $formName = $context->formName ?: $name;
+    $form = new $class($formName);
+
     $form->context = $context;
+
+    // add CSRF token
+    $form->addCSRF();
 
     // we add honeypots at the very top
     // this hopefully helps to trick spammers that try to submit the form
@@ -153,7 +168,7 @@ class RockForms extends WireData implements Module, ConfigurableModule
     // add submit delay
     $form->addSubmitDelay();
 
-    $this->forms->set($name, $form);
+    $this->forms->set($formName, $form);
 
     if ($rf) $rf->setTextdomain();
 
@@ -220,6 +235,16 @@ class RockForms extends WireData implements Module, ConfigurableModule
   }
 
   /**
+   * Hide rootpage from page tree
+   */
+  public function hideRootPage(HookEvent $event)
+  {
+    $event->return = $event->return->remove(
+      $this->wire->pages->get("/rockforms")
+    );
+  }
+
+  /**
    * Get names of honeyfields to add to each form
    * @return array
    */
@@ -251,6 +276,115 @@ class RockForms extends WireData implements Module, ConfigurableModule
     $event->return = str_replace("</head>", "$assets</head>", $event->return);
   }
 
+  /**
+   * Add markup for HTMX loading animation on submit
+   * @param HookEvent $event
+   * @return void
+   */
+  protected function hookAddLoader(HookEvent $event): void
+  {
+    if ($this->wire->config->ajax) return;
+    if ($this->wire->config->external) return;
+
+    // if loader is disabled in modules settings this string will
+    // not be present in the markup
+    $html = $event->return;
+    if (!strpos($html, "data-rockforms-loader")) return;
+
+    $modal = '<div id="rockforms-loader"><div class="loader"></div></div>';
+    $loader = $this->loaderCSS ?: '
+    .loader {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      display: inline-block;
+      border-top: 4px solid #FFF;
+      border-right: 4px solid transparent;
+      box-sizing: border-box;
+      animation: rotation 1s linear infinite;
+    }
+    .loader::after {
+      content: "";
+      box-sizing: border-box;
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      border-left: 4px solid #000;
+      border-bottom: 4px solid transparent;
+      animation: rotation 0.5s linear infinite reverse;
+    }
+    @keyframes rotation {
+      0% {
+        transform: rotate(0deg);
+      }
+      100% {
+        transform: rotate(360deg);
+      }
+    }';
+    $styles = "<style>
+      #rockforms-loader {
+        width: 100%;
+        height: 100%;
+        position: fixed;
+        left: 0;
+        top: 0;
+        transition: all 0.5s ease;
+        background-color: rgba(0,0,0,0.5);
+        opacity: 0;
+        pointer-events: none;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 99999;
+      }
+      body.rockforms-loader #rockforms-loader {
+        pointer-events: all;
+        opacity: 1;
+      }
+      $loader
+    </style>";
+    $script = '<script>
+    document.addEventListener("htmx:beforeRequest", (e) => {
+      if (typeof Nette == "undefined") return;
+      if (!Nette.validateForm(e.target)) return;
+      document.body.classList.add("rockforms-loader");
+    });
+    document.addEventListener("htmx:afterSwap", () => {
+      document.body.classList.remove("rockforms-loader");
+    });
+    </script>';
+
+    // basic "minify" for production
+    $str = $modal . $styles . $script;
+    if (!$this->wire->config->debug) $str = preg_replace('/\s+/', ' ', $str);
+
+    $html = str_replace(
+      "</body>",
+      "$str</body>",
+      $html
+    );
+    $event->return = $html;
+  }
+
+  /**
+   * Url hook for returning a CSRF token
+   * @param HookEvent $event
+   * @return void|string
+   * @throws WireException
+   */
+  protected function hookCreateCSRF(HookEvent $event)
+  {
+    if (!$this->wire->config->ajax) return;
+    $rand = new WireRandom();
+    $name = $rand->alphanumeric();
+    $token = $rand->alphanumeric();
+    $this->wire->session->set(self::csrfstring . $name, $token);
+    return $name . self::csrfstring . $token;
+  }
+
   public function hookDoubleSubmit(HookEvent $event)
   {
     $successForm = $this->wire->input->get($this->successParam, 'string');
@@ -263,6 +397,15 @@ class RockForms extends WireData implements Module, ConfigurableModule
         $this->wire->input->url() . $url
       );
     }
+  }
+
+  /**
+   * Hook num children when rootpage was removed
+   */
+  public function hookNumChildren(HookEvent $event)
+  {
+    $page = $event->arguments(0);
+    if ($page->id === 1) $page->numChildren = $page->numChildren - 1;
   }
 
   public function html($str)
@@ -377,7 +520,7 @@ class RockForms extends WireData implements Module, ConfigurableModule
     return $renderer->renderControlsHelper($parent);
   }
 
-  public function rockfrontend(): RockFrontend
+  public function rockfrontend(): RockFrontend|null
   {
     return $this->wire->modules->get('RockFrontend');
   }
@@ -448,37 +591,93 @@ class RockForms extends WireData implements Module, ConfigurableModule
           <li><a class=uk-text-bold href=https://paypal.me/baumrockcom>Support my work with a donation</a>, and together, we'll keep rocking the coding world! 💖💻💰</li>
         </ul>",
     ]);
-    $inputfields->add([
-      'type' => 'text',
-      'name' => 'confirmParam',
-      'label' => 'URL Confirmation Parameter',
-      'value' => $this->confirmParam,
-    ]);
-    $inputfields->add([
-      'type' => 'text',
-      'name' => 'successParam',
-      'label' => 'URL Success Parameter',
-      'notes' => 'Forms that have no custom action redirect to this url parameter on successful form submission.'
-        . "\nCurrent: ?{$this->successParam}=...",
-      'value' => $this->successParam,
-    ]);
-    $url = "https://github.com/contributte/live-form-validation";
-    $inputfields->add([
-      'type' => 'checkbox',
-      'name' => 'noLiveValidation',
-      'description' => 'By default RockForms will load the live-validation script automatically whenever a form is rendered on the page.',
-      'label' => 'Live-Validation',
-      'checkboxLabel' => "Don't inject the live-validation script automatically",
-      'notes' => "See [$url]($url)",
-      'checked' => $this->noLiveValidation ? 'checked' : '',
-    ]);
-    $inputfields->add([
+
+    $this->configFrontend($inputfields);
+    $this->configSpam($inputfields);
+    return $inputfields;
+  }
+
+  private function configFrontend(&$inputfields)
+  {
+    $fs = new InputfieldFieldset();
+    $fs->label = "Frontend (Form Submission & Validation)";
+    $fs->icon = "paper-plane-o";
+    $inputfields->add($fs);
+
+    $fs->add([
       'type' => 'checkbox',
       'name' => 'noHTMX',
-      'label' => 'Do NOT use HTMX for form submissions',
+      'label' => 'HTMX',
+      'description' => 'By default RockForms will submit forms via HTMX to provide great usability out of the box.',
+      'checkboxLabel' => 'Disable HTMX Form Submission',
+      'notes' => '[See docs for details](https://www.baumrock.com/en/processwire/modules/rockforms/docs/).',
       'checked' => $this->noHTMX ? 'checked' : '',
+      'columnWidth' => 50,
     ]);
-    $inputfields->add([
+    $fs->add([
+      'type' => 'checkbox',
+      'name' => 'noHtmxModal',
+      'label' => 'HTMX Modal',
+      'description' => 'By default RockForms add markup and styles for a modal that pops up when submitting the form.',
+      'checkboxLabel' => 'Disable HTMX Modal + CSS Markup',
+      'notes' => 'The markup will be injected at the bottom of your <body>
+        [See docs for details](https://www.baumrock.com/en/processwire/modules/rockforms/docs/).',
+      'checked' => $this->noHtmxModal ? 'checked' : '',
+      'columnWidth' => 50,
+    ]);
+    $fs->add([
+      'type' => 'textarea',
+      'name' => 'loaderCSS',
+      'label' => 'Loader CSS',
+      'description' => 'Here you can customise the CSS used for the loading animation. You can copy & paste code from [cssloaders.github.io](https://cssloaders.github.io)',
+      'value' => $this->loaderCSS,
+      'notes' => 'Leave empty to use the default loader.',
+    ]);
+
+    $fs->add([
+      'type' => 'checkbox',
+      'name' => 'noLiveValidation',
+      'label' => 'Live-Validation',
+      'description' => 'By default RockForms will add live-validation to your forms - that means users will get instant validation feedback without submitting the form to the server (and waiting for the response). Thx to NetteForms that JavaScript logic is automatically applied from your PHP code - you don\'t have to code it twice!',
+      'checkboxLabel' => "Disable Live-Validation",
+      'notes' => "[See docs for details and a live demo](https://www.baumrock.com/en/processwire/modules/rockforms/docs/validation/)",
+      'checked' => $this->noLiveValidation ? 'checked' : '',
+      'columnWidth' => 100,
+    ]);
+
+    $fs->add([
+      'type' => 'text',
+      'name' => 'confirmParam',
+      'label' => 'Double-Opt-In',
+      'description' => 'Here you can customise the endpoint for double-opt-in processes if you need to support such workflows to comply with GDPR or simply want to confirm the correctnes of mail addresses etc.',
+      'notes' => 'Default: yourdomain.com/forms-confirm/123abc
+        [See docs for details](https://www.baumrock.com/en/processwire/modules/rockforms/docs/opt-in/)',
+      'value' => $this->confirmParam,
+      'columnWidth' => 50,
+    ]);
+
+    $fs->add([
+      'type' => 'text',
+      'name' => 'successParam',
+      'label' => 'Success Parameter',
+      'description' => 'Specify a URL parameter to redirect to upon successful form submission.',
+      'notes' => 'Default: yourdomain.com/your/page/?form-success=DemoForm
+        See docs about [double form submissions](https://www.baumrock.com/en/processwire/modules/rockforms/docs/double/) for details and a demo.
+        Also see docs about [tracking form submissions when using XTMX](https://www.baumrock.com/en/processwire/modules/rockforms/docs/htmx/#tracking-form-submissions).',
+      'value' => $this->successParam,
+      'columnWidth' => 50,
+    ]);
+  }
+
+  private function configSpam(&$inputfields)
+  {
+    $fs = new InputfieldFieldset();
+    $fs->label = "Spam Protection";
+    $fs->icon = "filter";
+    $fs->description = 'RockForms spam protection is designed to be as simple as possible for the user filling out the form. Another important requirement is to make it work with ProCache\'d pages, which is why forms do not use CSRF and use JavaScript-based techniques instead. Is that 100% accurate or secure? No. Does it work for my clients? Yes :) [See docs for details](https://www.baumrock.com/en/processwire/modules/rockforms/docs/spam/).';
+    $inputfields->add($fs);
+
+    $fs->add([
       'type' => 'textarea',
       'name' => 'honeypotfields',
       'description' => 'To use honeypot fields for your forms enter one fieldname per line. Existing fieldnames will be skipped, so make sure to use good looking names like "message", "comment", "email" or such that you dont use yourself.',
@@ -486,15 +685,19 @@ class RockForms extends WireData implements Module, ConfigurableModule
       'value' => $this->honeypotfields,
       'notes' => "Enter one per line. If you don't want to use honeypots at all leave this field empty.
         Note: add .rf-hny { display: none; } to your site's CSS to hide the honeypot fields.",
+      'rows' => 3,
+      'columnWidth' => 50,
     ]);
-    $inputfields->add([
+
+    $fs->add([
       'type' => 'integer',
       'name' => 'submitdelay',
-      'label' => 'Submit Delay (in Seconds)',
+      'label' => 'Submit Delay',
+      'description' => 'Set a delay in seconds to prevent spam by analyzing the submission speed. Spam-Bots usually fill forms very quickly - humans don\'t!',
       'value' => $this->submitdelay,
-      'notes' => 'Spam-Bots usually fill forms very quickly - humans dont! Forms submitted within the given delay are considered spam.
-        I suggest using 2 seconds.',
+      'notes' => 'I recommend a setting of 2, which means that all forms submitted within 2 seconds after page load will be considered spam.
+      A setting of 0 disables this feature.',
+      'columnWidth' => 50,
     ]);
-    return $inputfields;
   }
 }
