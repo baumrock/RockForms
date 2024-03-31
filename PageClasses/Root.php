@@ -18,6 +18,7 @@ class Root extends Page
       'fields' => [],
       'templates' => [
         self::tpl => [
+          'icon' => 'paper-plane-o',
           'noChildren' => true,
           'noParents' => true,
         ],

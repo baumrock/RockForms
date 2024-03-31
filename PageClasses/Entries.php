@@ -27,6 +27,7 @@ class Entries extends Page
           ],
           'sortfield' => '-id',
           'noChildren' => true,
+          'icon' => 'files-o',
         ],
       ],
     ]);

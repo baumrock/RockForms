@@ -231,6 +231,7 @@ class Entry extends Page
           ],
           'noSettings' => true,
           'noParents' => true,
+          'icon' => 'file-o',
         ],
       ],
     ]);
