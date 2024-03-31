@@ -129,14 +129,16 @@ class RockForms extends WireData implements Module, ConfigurableModule
     $rf = $this->rockfrontend();
     if ($rf) $rf->setTextdomain($file);
 
-    $class = "\\RockForms\\$name";
-    $form = new $class($name);
-
     // set context
     if (is_array($context)) $context = (new WireData())->setArray($context);
     if (!$context instanceof WireData) {
       throw new WireException("Context must be either array or WireData");
     }
+
+    $class = "\\RockForms\\$name";
+    $formName = $context->formName ?: $name;
+    $form = new $class($formName);
+
     $form->context = $context;
 
     // we add honeypots at the very top
@@ -153,7 +155,7 @@ class RockForms extends WireData implements Module, ConfigurableModule
     // add submit delay
     $form->addSubmitDelay();
 
-    $this->forms->set($name, $form);
+    $this->forms->set($formName, $form);
 
     if ($rf) $rf->setTextdomain();
 

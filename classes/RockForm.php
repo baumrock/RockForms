@@ -21,12 +21,12 @@ class RockForm extends Form
 {
   const honeyErrorMessage = "Sorry, we don't like Spam!";
 
+  public $appendMarkup = false;
   public $context;
   public $fieldTags = [];
-  public $prependMarkup = false;
-  public $appendMarkup = false;
-
   public $isHoneySpam = false;
+  public $noHTMX = false;
+  public $prependMarkup = false;
 
   /** @var ProcessWire */
   public $wire;
@@ -171,6 +171,7 @@ class RockForm extends Form
    */
   public function getID(): string
   {
+    return $this->getElementPrototype()->getAttribute("id");
     return $this->getElementPrototype()->id;
   }
 
