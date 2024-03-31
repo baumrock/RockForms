@@ -81,6 +81,7 @@ class RockForms extends WireData implements Module, ConfigurableModule
     wire()->addHookAfter("Page::render", $this, "hookDoubleSubmit");
     wire()->addHookAfter("Page::render", $this, "hookAddAssets");
     wire()->addHookAfter("Page::render", $this, "hookAddLoader");
+    wire()->addHookAfter("Page::render", $this, "hookAddJsWarning");
     wire()->addHook("/" . $this->confirmParam . "/{key}/", $this, "handleConfirm");
     wire()->addHook("/rockforms-csrf/", $this, "hookCreateCSRF");
 
@@ -367,6 +368,34 @@ class RockForms extends WireData implements Module, ConfigurableModule
       $html
     );
     $event->return = $html;
+  }
+
+  /**
+   * We show a warning for superusers if a form uses CSRF but JS is not loaded
+   * @param HookEvent $event
+   * @return void
+   * @throws WireException
+   * @throws WirePermissionException
+   */
+  protected function hookAddJsWarning(HookEvent $event): void
+  {
+    if (!$this->wire->user->isSuperuser()) return;
+    if (!$this->wire->config->debug) return;
+    $html = $event->return;
+    $event->return = str_replace(
+      "</body>",
+      '<script>
+      document.addEventListener("DOMContentLoaded", () => {
+        setTimeout(() => {
+          let csrfInput = document.querySelector(".RockForm input[name=csrf]");
+          if (csrfInput && typeof RockForms === "undefined") {
+            alert("CSRF needs RockForms.js to work!");
+          }
+        }, 50);
+      });
+      </script></body>',
+      $html
+    );
   }
 
   /**

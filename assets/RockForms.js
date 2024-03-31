@@ -6,6 +6,9 @@
  * <?= $rockforms->scriptTag(); ?>
  */
 
+// this is for the CSRF missing JS warning
+var RockForms = true;
+
 // don't send htmx request if form is not valid
 document.addEventListener("htmx:beforeRequest", (e) => {
   if (typeof Nette == "undefined") return;
