@@ -2,6 +2,8 @@
 
 namespace RockForms;
 
+use ProcessWire\WireMail;
+
 class {name} extends RockForm
 {
 

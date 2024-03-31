@@ -14,10 +14,10 @@ class ProcessRockForms extends Process
   public static function getModuleInfo()
   {
     return [
-      'title' => 'RockForms Management Module',
-      'version' => '0.0.1',
-      'summary' => '',
-      'icon' => 'th-list',
+      'title' => 'RockForms GUI',
+      'version' => '1.0.0',
+      'summary' => 'GUI for creating forms and managing form entries.',
+      'icon' => 'paper-plane-o',
       'requires' => [
         'RockForms',
       ],
@@ -46,6 +46,15 @@ class ProcessRockForms extends Process
     if (!$name) return;
     $name = ucfirst($this->wire->sanitizer->camelCase($name));
     if (!$name) return "Invalid name - please try another one!";
+
+    // only allow creating forms in debug mode
+    if (!$this->wire->config->debug) {
+      return "Creating forms is only allowed when \$config->debug = TRUE";
+    }
+
+    if (!$this->wire->user->isSuperuser()) {
+      return "Creating forms is only allowed for superusers.";
+    }
 
     $rf = $this->rockforms();
     $form = $rf->getForm($name, true);
@@ -85,15 +94,51 @@ class ProcessRockForms extends Process
       ]);
     }
 
+    if ($this->wire->config->debug && $this->wire->user->isSuperuser()) {
+      $form->add([
+        'type' => 'text',
+        'name' => 'createform',
+        'label' => 'Create a New Form',
+        'notes' => 'Enter the name of your form and hit enter to submit',
+        'icon' => 'plus',
+        'collapsed' => Inputfield::collapsedYes,
+      ]);
+      $f = $form->children()->last();
+      if ($createError) $f->error($createError);
+    } elseif ($this->wire->user->isSuperuser()) {
+      $form->add([
+        'type' => 'markup',
+        'label' => 'Create a New Form',
+        'icon' => 'plus',
+        'value' => 'Creating forms is only allowed if $config->debug = TRUE',
+        'notes' => 'This field is only shown to superusers.',
+        'collapsed' => Inputfield::collapsedYes,
+      ]);
+    }
+
+    // load the pagelist javascript
+    $this->wire->modules->get('ProcessPageList');
+    $rockformsroot = $this->wire->pages->get('/rockforms');
     $form->add([
-      'type' => 'text',
-      'name' => 'createform',
-      'label' => 'Create a New Form',
-      'notes' => 'Enter the name of your form and hit enter to submit',
-      'icon' => 'plus',
+      'name' => 'rockformsroot',
+      'type' => 'markup',
+      'label' => 'Manage Form Entries',
+      'icon' => 'paper-plane-o',
+      'value' => "
+        <style>
+        .PageListTemplate_rockforms_entry .PageListActionLock,
+        .PageListTemplate_rockforms_entry .PageListActionMove {
+          display: none !important;
+        }
+        </style>
+        <div id='rockformsroot'></div>
+        <script>
+        $('#rockformsroot').ProcessPageList({
+          rootPageID: $rockformsroot,
+          showRootPage: false,
+        });
+        </script>",
     ]);
-    $f = $form->children()->last();
-    if ($createError) $f->error($createError);
 
     return $form->render();
   }

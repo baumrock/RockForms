@@ -24,7 +24,7 @@ class RockForm extends Form
   public $appendMarkup = false;
   public $context;
   public $fieldTags = [];
-  public $isHoneySpam = false;
+  public $isSpam = false;
   public $noHTMX = false;
   public $prependMarkup = false;
 
@@ -377,7 +377,7 @@ class RockForm extends Form
         $control->getOption("rockforms-honey")
         || $control->getOption("rockforms-submitdelay")
       )) continue;
-      if (count($control->getErrors())) $this->isHoneySpam = true;
+      if (count($control->getErrors())) $this->isSpam = true;
     }
   }
 
