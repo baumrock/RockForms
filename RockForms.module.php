@@ -54,6 +54,10 @@ class RockForms extends WireData implements Module, ConfigurableModule
     $this->wire->classLoader->addNamespace("RockForms", __DIR__ . "/classes");
     $this->wire->classLoader->addNamespace("RockForms", __DIR__ . "/PageClasses");
     $this->wire->classLoader->addNamespace("RockForms\Renderer", __DIR__ . "/RockFormsRenderer");
+    $this->wire->classLoader->addNamespace(
+      "RockForms\Renderer",
+      $this->wire->config->paths->templates . "RockForms/Renderer"
+    );
     $this->wire->classLoader->addNamespace("RockForms\Controls", __DIR__ . "/controls");
     $this->wire->classLoader->addNamespace(
       "RockForms",
@@ -130,6 +134,7 @@ class RockForms extends WireData implements Module, ConfigurableModule
     if ($rf) $rf->setTextdomain($file);
 
     // set context
+    if (!$context) $context = [];
     if (is_array($context)) $context = (new WireData())->setArray($context);
     if (!$context instanceof WireData) {
       throw new WireException("Context must be either array or WireData");
