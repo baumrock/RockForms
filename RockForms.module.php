@@ -24,6 +24,8 @@ function rockforms(): RockForms
 
 class RockForms extends WireData implements Module, ConfigurableModule
 {
+  const csrfstring = "rockforms-csrf";
+
   public $confirmParam = "forms-confirm";
 
   public $honeypotfields = "";
@@ -76,32 +78,15 @@ class RockForms extends WireData implements Module, ConfigurableModule
     if (!$this->successParam) $this->successParam = 'form-success';
 
     // hooks
-    $this->wire->addHookAfter("Page::render", $this, "hookDoubleSubmit");
-    $this->wire->addHookAfter("Page::render", $this, "hookAddAssets");
-    $this->wire->addHook("/" . $this->confirmParam . "/{key}/", $this, "handleConfirm");
+    wire()->addHookAfter("Page::render", $this, "hookDoubleSubmit");
+    wire()->addHookAfter("Page::render", $this, "hookAddAssets");
+    wire()->addHookAfter("Page::render", $this, "hookAddLoader");
+    wire()->addHook("/" . $this->confirmParam . "/{key}/", $this, "handleConfirm");
+    wire()->addHook("/rockforms-csrf/", $this, "hookCreateCSRF");
 
     // hide rootpage from tree
     $this->addHookAfter("ProcessPageList::find", $this, "hideRootPage");
     $this->addHookBefore('ProcessPageListRender::getNumChildren', $this, "hookNumChildren");
-  }
-
-  /**
-   * Hide rootpage from page tree
-   */
-  public function hideRootPage(HookEvent $event)
-  {
-    $event->return = $event->return->remove(
-      $this->wire->pages->get("/rockforms")
-    );
-  }
-
-  /**
-   * Hook num children when rootpage was removed
-   */
-  public function hookNumChildren(HookEvent $event)
-  {
-    $page = $event->arguments(0);
-    if ($page->id === 1) $page->numChildren = $page->numChildren - 1;
   }
 
   public function checkbox($val, $tooltip = false)
@@ -165,6 +150,9 @@ class RockForms extends WireData implements Module, ConfigurableModule
     $form = new $class($formName);
 
     $form->context = $context;
+
+    // add CSRF token
+    $form->addCSRF();
 
     // we add honeypots at the very top
     // this hopefully helps to trick spammers that try to submit the form
@@ -247,6 +235,16 @@ class RockForms extends WireData implements Module, ConfigurableModule
   }
 
   /**
+   * Hide rootpage from page tree
+   */
+  public function hideRootPage(HookEvent $event)
+  {
+    $event->return = $event->return->remove(
+      $this->wire->pages->get("/rockforms")
+    );
+  }
+
+  /**
    * Get names of honeyfields to add to each form
    * @return array
    */
@@ -278,6 +276,115 @@ class RockForms extends WireData implements Module, ConfigurableModule
     $event->return = str_replace("</head>", "$assets</head>", $event->return);
   }
 
+  /**
+   * Add markup for HTMX loading animation on submit
+   * @param HookEvent $event
+   * @return void
+   */
+  protected function hookAddLoader(HookEvent $event): void
+  {
+    if ($this->wire->config->ajax) return;
+    if ($this->wire->config->external) return;
+
+    // if loader is disabled in modules settings this string will
+    // not be present in the markup
+    $html = $event->return;
+    if (!strpos($html, "data-rockforms-loader")) return;
+
+    $modal = '<div id="rockforms-loader"><div class="loader"></div></div>';
+    $loader = $this->loaderCSS ?: '
+    .loader {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      display: inline-block;
+      border-top: 4px solid #FFF;
+      border-right: 4px solid transparent;
+      box-sizing: border-box;
+      animation: rotation 1s linear infinite;
+    }
+    .loader::after {
+      content: "";
+      box-sizing: border-box;
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      border-left: 4px solid #000;
+      border-bottom: 4px solid transparent;
+      animation: rotation 0.5s linear infinite reverse;
+    }
+    @keyframes rotation {
+      0% {
+        transform: rotate(0deg);
+      }
+      100% {
+        transform: rotate(360deg);
+      }
+    }';
+    $styles = "<style>
+      #rockforms-loader {
+        width: 100%;
+        height: 100%;
+        position: fixed;
+        left: 0;
+        top: 0;
+        transition: all 0.5s ease;
+        background-color: rgba(0,0,0,0.5);
+        opacity: 0;
+        pointer-events: none;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 99999;
+      }
+      body.rockforms-loader #rockforms-loader {
+        pointer-events: all;
+        opacity: 1;
+      }
+      $loader
+    </style>";
+    $script = '<script>
+    document.addEventListener("htmx:beforeRequest", (e) => {
+      if (typeof Nette == "undefined") return;
+      if (!Nette.validateForm(e.target)) return;
+      document.body.classList.add("rockforms-loader");
+    });
+    document.addEventListener("htmx:afterSwap", () => {
+      document.body.classList.remove("rockforms-loader");
+    });
+    </script>';
+
+    // basic "minify" for production
+    $str = $modal . $styles . $script;
+    if (!$this->wire->config->debug) $str = preg_replace('/\s+/', ' ', $str);
+
+    $html = str_replace(
+      "</body>",
+      "$str</body>",
+      $html
+    );
+    $event->return = $html;
+  }
+
+  /**
+   * Url hook for returning a CSRF token
+   * @param HookEvent $event
+   * @return void|string
+   * @throws WireException
+   */
+  protected function hookCreateCSRF(HookEvent $event)
+  {
+    if (!$this->wire->config->ajax) return;
+    $rand = new WireRandom();
+    $name = $rand->alphanumeric();
+    $token = $rand->alphanumeric();
+    $this->wire->session->set(self::csrfstring . $name, $token);
+    return $name . self::csrfstring . $token;
+  }
+
   public function hookDoubleSubmit(HookEvent $event)
   {
     $successForm = $this->wire->input->get($this->successParam, 'string');
@@ -290,6 +397,15 @@ class RockForms extends WireData implements Module, ConfigurableModule
         $this->wire->input->url() . $url
       );
     }
+  }
+
+  /**
+   * Hook num children when rootpage was removed
+   */
+  public function hookNumChildren(HookEvent $event)
+  {
+    $page = $event->arguments(0);
+    if ($page->id === 1) $page->numChildren = $page->numChildren - 1;
   }
 
   public function html($str)
@@ -498,6 +614,25 @@ class RockForms extends WireData implements Module, ConfigurableModule
       'checked' => $this->noHTMX ? 'checked' : '',
       'columnWidth' => 50,
     ]);
+    $fs->add([
+      'type' => 'checkbox',
+      'name' => 'noHtmxModal',
+      'label' => 'HTMX Modal',
+      'description' => 'By default RockForms add markup and styles for a modal that pops up when submitting the form.',
+      'checkboxLabel' => 'Disable HTMX Modal + CSS Markup',
+      'notes' => 'The markup will be injected at the bottom of your <body>
+        [See docs for details](https://www.baumrock.com/en/processwire/modules/rockforms/docs/).',
+      'checked' => $this->noHtmxModal ? 'checked' : '',
+      'columnWidth' => 50,
+    ]);
+    $fs->add([
+      'type' => 'textarea',
+      'name' => 'loaderCSS',
+      'label' => 'Loader CSS',
+      'description' => 'Here you can customise the CSS used for the loading animation. You can copy & paste code from [cssloaders.github.io](https://cssloaders.github.io)',
+      'value' => $this->loaderCSS,
+      'notes' => 'Leave empty to use the default loader.',
+    ]);
 
     $fs->add([
       'type' => 'checkbox',
@@ -507,7 +642,7 @@ class RockForms extends WireData implements Module, ConfigurableModule
       'checkboxLabel' => "Disable Live-Validation",
       'notes' => "[See docs for details and a live demo](https://www.baumrock.com/en/processwire/modules/rockforms/docs/validation/)",
       'checked' => $this->noLiveValidation ? 'checked' : '',
-      'columnWidth' => 50,
+      'columnWidth' => 100,
     ]);
 
     $fs->add([

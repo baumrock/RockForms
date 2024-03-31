@@ -10,6 +10,7 @@ use ProcessWire\RockForms;
 use RockForms\Controls\Markup;
 use RockForms\RockForm;
 
+use function ProcessWire\rockforms;
 use function ProcessWire\wire;
 
 class RockFormsRenderer extends DefaultFormRenderer
@@ -54,7 +55,11 @@ class RockFormsRenderer extends DefaultFormRenderer
    */
   public function render(Form $form, ?string $mode = null): string
   {
-    $form->getElementPrototype()->addClass('RockForm');
+    $forms = rockforms();
+    $form->getElementPrototype()
+      ->addClass('RockForm')
+      ->addClass($forms->noHtmxModal ?: 'data-rockforms-loader');
+
     return
       $form->prependMarkup .
       parent::render($form, $mode) .

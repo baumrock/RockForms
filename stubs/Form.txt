@@ -6,6 +6,8 @@ use ProcessWire\WireMail;
 
 class {name} extends RockForm
 {
+  // to disable CSRF for this form
+  const CSRF = false;
 
   public function buildForm()
   {

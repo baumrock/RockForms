@@ -1,5 +1,7 @@
 # HTMX
 
+<div class="uk-alert uk-alert-warning">Needs <a href=../js/>RockForms.js</a></div>
+
 HTMX transforms your traditional HTML forms into modern forms that use AJAX to submit data. This means you can update your webpage with a success message without reloading the page.
 
 Here's what this approach offers:
@@ -11,26 +13,6 @@ Here's what this approach offers:
 RockForms is designed to add as little extra load to your site as possible, ensuring it remains speedy. The HTMX library is loaded only when the user interacts with your form, keeping things efficient.
 
 This is why RockForms will use HTMX for all forms by default. If you are already using HTMX on your site RockFrontend will not load it again.
-
-## Setup
-
-Seamless integration at its finest! When you're using RockFrontend, everything is configured automatically for you. How cool is that? 😎
-
-### Setup without RockFrontend
-
-If you're not using RockFrontend, the only requirement is to ensure that `RockForms.min.js` is loaded on your site. This is crucial for the proper functioning of RockForms with HTMX. You can manually add the script tag to your site's HTML head section like so:
-
-```php
-echo $rockforms->scriptTag();
-```
-
-The output will look similar to the following:
-
-```html
-<script src="/site/modules/RockForms/assets/RockForms.min.js?sa179u" defer=""></script>
-```
-
-Did you notice the cache-busting query string `?sa178u`? RockForms seamlessly integrates this feature, automatically updating it with each upgrade for you.
 
 ## Customizing HTMX Markup
 
@@ -48,48 +30,13 @@ If you need custom attributes simply add them as needed or replace the existing 
 $form->setHtmlAttribute("hx-post", false);
 ```
 
-## Adding Cool Loading Animations
+## Adding Loading Animations
 
-Adding a CSS loading animation to your form while it's sending data is simple. Just pick your favorite animation from https://cssloaders.github.io/.
+When using HTMX RockForms will add a loading overlay to your page after the form was submitted. You can use any loader like the ones at [cssloaders.github.io](https://cssloaders.github.io/) or build your own. See the module config page for options!
 
-Wondering how to make the animation appear when you submit the form? We'll need to add a bit of JavaScript to the frontend of your site.
+You can try a live preview:
 
-For this example, we're going to use UIkit and its <a href=https://getuikit.com/docs/modal>modal component</a> to display an overlay during the data transmission via HTMX.
-
-Let's start by creating the modal markup:
-
-```html
-<div id="form-modal" class="uk-modal-full" uk-modal>
-  <div class="uk-modal-dialog" style="background: rgba(0,0,0,0.8)">
-    <div class="uk-flex uk-flex-center uk-flex-middle" uk-height-viewport>
-      <div class="loader"></div>
-    </div>
-  </div>
-</div>
-```
-
-To avoid repeatedly submitting the form while working on the loading animation, you can use this JavaScript to automatically display the modal when the page loads:
-
-```html
-<script>
-UIkit.modal(document.querySelector('#form-modal')).show();
-</script>
-```
-
-With RockFrontend's livereload feature, you can instantly see your code changes without leaving your IDE!
-
-After setting up your animation, simply add JavaScript to display the modal when submitting and hide it after receiving a response:
-
-```js
-// show/hide form submit modal
-(() => {
-  let modal = UIkit.modal(document.querySelector("#form-modal"));
-  document.addEventListener("htmx:beforeRequest", (e) => {
-    if (Nette.validateForm(e.target)) modal.show();
-  });
-  document.addEventListener("htmx:afterSwap", modal.hide);
-})();
-```
+[rockforms=Quickstart]
 
 ## Tracking Form Submissions
 

@@ -13,7 +13,9 @@ This will render the following:
 
 <img src=checkbox.png class=blur alt="Label Markup">
 
-NetteForms makes it a little complicated to add custom HTML to their elements, but RockForms has you covered! Simply wrap your markup with `$form->html()`:
+This is a security feature from Nette, which is a good thing. It prevents possible injection attacks. But unfortunately it's too complicated to add HTML if you know what you are doing.
+
+But RockForms has you covered! Simply wrap your markup with `$form->html()`:
 
 ```php
 $form->addCheckbox(
@@ -22,4 +24,6 @@ $form->addCheckbox(
 );
 ```
 
-  <img src=checkbox2.png class=blur alt="Label Markup">
+<img src=checkbox2.png class=blur alt="Label Markup">
+
+Always make sure that you never pass unsanitized markup to `$form->html()` for security reasons!

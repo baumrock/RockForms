@@ -4,6 +4,8 @@ namespace RockForms;
 
 use Nette\Forms\Controls\TextInput;
 use Nette\Forms\Form;
+use Nette\InvalidStateException;
+use Nette\InvalidArgumentException;
 use Nette\NotSupportedException;
 use Nette\Utils\RegexpException;
 use ProcessWire\ProcessWire;
@@ -19,6 +21,7 @@ use function ProcessWire\wire;
 
 class RockForm extends Form
 {
+  const CSRF = true;
   const honeyErrorMessage = "Sorry, we don't like Spam!";
 
   public $appendMarkup = false;
@@ -46,6 +49,7 @@ class RockForm extends Form
       $form->rockforms()->rendered($form);
     };
     $this->onValidate[] = function (RockForm $form) {
+      if ($form::CSRF) $form->validateCSRF();
       $form->validateAntiSpam();
       $form->processInput();
     };
@@ -54,6 +58,22 @@ class RockForm extends Form
 
   public function init()
   {
+  }
+
+  /**
+   * Add CSRF protection to this form
+   * @return void
+   * @throws InvalidStateException
+   * @throws InvalidArgumentException
+   */
+  public function addCSRF(): void
+  {
+    if (!$this::CSRF) return;
+    $this->addText("csrf", "CSRF Token")
+      ->addRule($this::FILLED, "Error loading CSRF Token")
+      ->addCondition($this::EQUAL, "loading")
+      ->addRule($this::BLANK, "Loading CSRF token - please wait!");
+    $this->addMarkup("<div hidden>{csrf}</div>");
   }
 
   /**
@@ -379,6 +399,28 @@ class RockForm extends Form
       )) continue;
       if (count($control->getErrors())) $this->isSpam = true;
     }
+  }
+
+  /**
+   * Validate CSRF protection
+   * @return void
+   */
+  private function validateCSRF(): void
+  {
+    foreach ($this->getControls() as $control) {
+      if ($control->name !== 'csrf') continue;
+      if (!$control instanceof TextInput) continue;
+      $parts = explode(RockForms::csrfstring, $control->getValue(), 2);
+      if (count($parts) !== 2) continue;
+      $key = RockForms::csrfstring . $parts[0];
+      $token = $parts[1];
+      $_token = $this->wire->session->get($key);
+      if ($token === $_token) {
+        $this->wire->session->remove($key);
+        return; // early exit, no error
+      }
+    }
+    $this->addError("Invalid CSRF token");
   }
 
   public function wire(): ProcessWire
