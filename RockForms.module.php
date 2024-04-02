@@ -86,8 +86,10 @@ class RockForms extends WireData implements Module, ConfigurableModule
     wire()->addHook("/rockforms-csrf/", $this, "hookCreateCSRF");
 
     // hide rootpage from tree
-    $this->addHookAfter("ProcessPageList::find", $this, "hideRootPage");
-    $this->addHookBefore('ProcessPageListRender::getNumChildren', $this, "hookNumChildren");
+    if (!$this->showDataPage) {
+      $this->addHookAfter("ProcessPageList::find", $this, "hideRootPage");
+      $this->addHookBefore('ProcessPageListRender::getNumChildren', $this, "hookNumChildren");
+    }
   }
 
   public function checkbox($val, $tooltip = false)
@@ -621,9 +623,26 @@ class RockForms extends WireData implements Module, ConfigurableModule
         </ul>",
     ]);
 
-    $this->configFrontend($inputfields);
     $this->configSpam($inputfields);
+    $this->configFrontend($inputfields);
+    $this->configBackend($inputfields);
     return $inputfields;
+  }
+
+  private function configBackend(&$inputfields)
+  {
+    $fs = new InputfieldFieldset();
+    $fs->label = "Backend";
+    $fs->icon = "sitemap";
+    $inputfields->add($fs);
+
+    $fs->add([
+      'type' => 'checkbox',
+      'name' => 'showDataPage',
+      'label' => 'Show Datapage in Pagetree for Superusers',
+      'checked' => $this->showDataPage ? 'checked' : '',
+      'columnWidth' => 100,
+    ]);
   }
 
   private function configFrontend(&$inputfields)
@@ -661,6 +680,7 @@ class RockForms extends WireData implements Module, ConfigurableModule
       'description' => 'Here you can customise the CSS used for the loading animation. You can copy & paste code from [cssloaders.github.io](https://cssloaders.github.io)',
       'value' => $this->loaderCSS,
       'notes' => 'Leave empty to use the default loader.',
+      'collapsed' => Inputfield::collapsedBlank,
     ]);
 
     $fs->add([
