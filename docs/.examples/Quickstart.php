@@ -32,6 +32,7 @@ class Quickstart extends RockForm
   {
     $name = $values->forename;
     if ($values->surname) $name .= " " . $values->surname;
+    $name = $this->wire->sanitizer->entities($name);
     return "<div class='uk-alert uk-alert-success'>
       <p>Thank you for submitting the form, $name!</p>
       <p>Now try to reload the page and see what happens: The form will not be submitted again (which is a typical pitfall when building forms on your own). Instead it will reload the page and present you a fresh new form ready for you to fill out ;)</p>
