@@ -7,7 +7,7 @@ use ProcessWire\WireMail;
 class {name} extends RockForm
 {
   // to disable CSRF for this form
-  const CSRF = false;
+  // const CSRF = false;
 
   public function buildForm()
   {
@@ -27,8 +27,10 @@ class {name} extends RockForm
     // you can do an early exit if the form has errors
     if ($this->hasErrors()) return;
 
+    // getValues() returns all values including CSRF + spam protection fields
     // $values = $this->getValues();
-    $values = $this->getValuesWithoutHoney();
+    // getNonSystemValues() returns only non-system fields
+    $values = $this->getNonSystemValues();
 
     // you can throw custom errors like this:
     if ($values->surname === 'baz') {
