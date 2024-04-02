@@ -81,12 +81,15 @@ class RockForms extends WireData implements Module, ConfigurableModule
     wire()->addHookAfter("Page::render", $this, "hookDoubleSubmit");
     wire()->addHookAfter("Page::render", $this, "hookAddAssets");
     wire()->addHookAfter("Page::render", $this, "hookAddLoader");
+    wire()->addHookAfter("Page::render", $this, "hookAddJsWarning");
     wire()->addHook("/" . $this->confirmParam . "/{key}/", $this, "handleConfirm");
     wire()->addHook("/rockforms-csrf/", $this, "hookCreateCSRF");
 
     // hide rootpage from tree
-    $this->addHookAfter("ProcessPageList::find", $this, "hideRootPage");
-    $this->addHookBefore('ProcessPageListRender::getNumChildren', $this, "hookNumChildren");
+    if (!$this->showDataPage) {
+      $this->addHookAfter("ProcessPageList::find", $this, "hideRootPage");
+      $this->addHookBefore('ProcessPageListRender::getNumChildren', $this, "hookNumChildren");
+    }
   }
 
   public function checkbox($val, $tooltip = false)
@@ -370,6 +373,34 @@ class RockForms extends WireData implements Module, ConfigurableModule
   }
 
   /**
+   * We show a warning for superusers if a form uses CSRF but JS is not loaded
+   * @param HookEvent $event
+   * @return void
+   * @throws WireException
+   * @throws WirePermissionException
+   */
+  protected function hookAddJsWarning(HookEvent $event): void
+  {
+    if (!$this->wire->user->isSuperuser()) return;
+    if (!$this->wire->config->debug) return;
+    $html = $event->return;
+    $event->return = str_replace(
+      "</body>",
+      '<script>
+      document.addEventListener("DOMContentLoaded", () => {
+        setTimeout(() => {
+          let csrfInput = document.querySelector(".RockForm input[name=csrf]");
+          if (csrfInput && typeof RockForms === "undefined") {
+            alert("CSRF needs RockForms.js to work!");
+          }
+        }, 50);
+      });
+      </script></body>',
+      $html
+    );
+  }
+
+  /**
    * Url hook for returning a CSRF token
    * @param HookEvent $event
    * @return void|string
@@ -592,9 +623,26 @@ class RockForms extends WireData implements Module, ConfigurableModule
         </ul>",
     ]);
 
-    $this->configFrontend($inputfields);
     $this->configSpam($inputfields);
+    $this->configFrontend($inputfields);
+    $this->configBackend($inputfields);
     return $inputfields;
+  }
+
+  private function configBackend(&$inputfields)
+  {
+    $fs = new InputfieldFieldset();
+    $fs->label = "Backend";
+    $fs->icon = "sitemap";
+    $inputfields->add($fs);
+
+    $fs->add([
+      'type' => 'checkbox',
+      'name' => 'showDataPage',
+      'label' => 'Show Datapage in Pagetree for Superusers',
+      'checked' => $this->showDataPage ? 'checked' : '',
+      'columnWidth' => 100,
+    ]);
   }
 
   private function configFrontend(&$inputfields)
@@ -632,6 +680,7 @@ class RockForms extends WireData implements Module, ConfigurableModule
       'description' => 'Here you can customise the CSS used for the loading animation. You can copy & paste code from [cssloaders.github.io](https://cssloaders.github.io)',
       'value' => $this->loaderCSS,
       'notes' => 'Leave empty to use the default loader.',
+      'collapsed' => Inputfield::collapsedBlank,
     ]);
 
     $fs->add([
@@ -666,6 +715,12 @@ class RockForms extends WireData implements Module, ConfigurableModule
         Also see docs about [tracking form submissions when using XTMX](https://www.baumrock.com/en/processwire/modules/rockforms/docs/htmx/#tracking-form-submissions).',
       'value' => $this->successParam,
       'columnWidth' => 50,
+    ]);
+
+    $fs->add([
+      'type' => 'markup',
+      'label' => 'RockForms.js Documentation',
+      'value' => 'Please see the <a href="https://www.baumrock.com/en/processwire/modules/rockforms/docs/js/" target="_blank">documentation about RockForms.js</a> for more information on how to properly integrate and use it in your projects.',
     ]);
   }
 

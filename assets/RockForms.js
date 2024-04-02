@@ -6,6 +6,9 @@
  * <?= $rockforms->scriptTag(); ?>
  */
 
+// this is for the CSRF missing JS warning
+var RockForms = true;
+
 // don't send htmx request if form is not valid
 document.addEventListener("htmx:beforeRequest", (e) => {
   if (typeof Nette == "undefined") return;
@@ -39,7 +42,6 @@ document.addEventListener("htmx:beforeRequest", (e) => {
 
 // load CSRF token on form interaction
 (() => {
-  let loaded = false;
   "input,focusin".split(",").forEach((event) => {
     document.addEventListener(event, (e) => {
       let form = e.target.closest("form");
@@ -47,9 +49,9 @@ document.addEventListener("htmx:beforeRequest", (e) => {
       let input = form.querySelector('input[name="csrf"]');
       if (!input) return;
 
-      // we only load a token once
-      if (loaded) return;
-      loaded = true;
+      // we only load a token once for every form
+      if (form.classList.contains("csrf-loaded")) return;
+      form.classList.add("csrf-loaded");
 
       // reset the value and load a new token
       input.value = "loading";
@@ -71,9 +73,12 @@ document.addEventListener("htmx:beforeRequest", (e) => {
   });
 
   // reset all csrf inputfields on page load
-  document.addEventListener("DOMContentLoaded", () => {
-    document
-      .querySelectorAll(".RockForm input[name=csrf]")
-      .forEach((input) => (input.value = ""));
-  });
+  let resetCSRF = function () {
+    document.querySelectorAll(".RockForm input[name=csrf]").forEach((input) => {
+      input.value = "";
+      input.closest(".RockForm").classList.remove("csrf-loaded");
+    });
+  };
+  document.addEventListener("DOMContentLoaded", resetCSRF);
+  document.addEventListener("htmx:afterSwap", resetCSRF);
 })();

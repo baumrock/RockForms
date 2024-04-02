@@ -45,7 +45,8 @@ public function processInput()
   }
   if ($this->hasErrors()) return;
 
-  $values = $this->getValuesWithoutHoney();
+  // get values without system fields like CSRF or honeypots
+  $values = $this->getNonSystemValues();
   $values->url = $this->wire->page->httpUrl();
 
   // save entry to backend
@@ -77,7 +78,7 @@ public function processInput()
   }
 
   // throw error on a single field aka component
-  $values = $this->getValuesWithoutHoney();
+  $values = $this->getValues();
   if ($values->surname === 'baz') {
     $this
       ->getComponent('surname')

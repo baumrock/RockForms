@@ -70,6 +70,7 @@ class RockForm extends Form
   {
     if (!$this::CSRF) return;
     $this->addText("csrf", "CSRF Token")
+      ->setOption('rockforms-system', true)
       ->addRule($this::FILLED, "Error loading CSRF Token")
       ->addCondition($this::EQUAL, "loading")
       ->addRule($this::BLANK, "Loading CSRF token - please wait!");
@@ -196,6 +197,22 @@ class RockForm extends Form
   }
 
   /**
+   * Get submitted values without system fields like honeypot/csrf
+   */
+  public function getNonSystemValues(): WireData
+  {
+    $values = new WireData();
+    $values->setArray($this->getValues('array'));
+    foreach ($this->getFields() as $name => $field) {
+      $remove = false;
+      if ($field->getOption("rockforms-honey")) $remove = true;
+      elseif ($field->getOption("rockforms-system")) $remove = true;
+      if ($remove) $values->remove($name);
+    }
+    return $values;
+  }
+
+  /**
    * Get current url
    * By default this will also include the query string
    * eg /foo/?bar=baz
@@ -205,20 +222,6 @@ class RockForm extends Form
     if (!$params) return $this->wire->input->url();
     $query = $this->wire->input->queryString();
     return $this->wire->input->url() . ($query ? "?$query" : "");
-  }
-
-  /**
-   * Get submitted values without honeypot fields
-   */
-  public function getValuesWithoutHoney(): WireData
-  {
-    $values = new WireData();
-    $values->setArray($this->getValues('array'));
-    foreach ($this->getFields() as $name => $field) {
-      if (!$field->getOption("rockforms-honey")) continue;
-      $values->remove($name);
-    }
-    return $values;
   }
 
   /**
@@ -310,7 +313,7 @@ class RockForm extends Form
 
   public function saveEntry($title, $values = null): Entry
   {
-    if (!$values) $values = $this->getValuesWithoutHoney()->getArray();
+    if (!$values) $values = $this->getNonSystemValues()->getArray();
 
     // save entry
     $entry = new Entry();
