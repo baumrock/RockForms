@@ -74,9 +74,12 @@ document.addEventListener("htmx:beforeRequest", (e) => {
   });
 
   // reset all csrf inputfields on page load
-  document.addEventListener("DOMContentLoaded", () => {
+  let resetCSRF = function () {
+    loaded = false;
     document
       .querySelectorAll(".RockForm input[name=csrf]")
       .forEach((input) => (input.value = ""));
-  });
+  };
+  document.addEventListener("DOMContentLoaded", resetCSRF);
+  document.addEventListener("htmx:afterSwap", resetCSRF);
 })();
