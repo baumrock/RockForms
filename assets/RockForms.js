@@ -42,7 +42,6 @@ document.addEventListener("htmx:beforeRequest", (e) => {
 
 // load CSRF token on form interaction
 (() => {
-  let loaded = false;
   "input,focusin".split(",").forEach((event) => {
     document.addEventListener(event, (e) => {
       let form = e.target.closest("form");
@@ -50,9 +49,9 @@ document.addEventListener("htmx:beforeRequest", (e) => {
       let input = form.querySelector('input[name="csrf"]');
       if (!input) return;
 
-      // we only load a token once
-      if (loaded) return;
-      loaded = true;
+      // we only load a token once for every form
+      if (form.classList.contains("csrf-loaded")) return;
+      form.classList.add("csrf-loaded");
 
       // reset the value and load a new token
       input.value = "loading";
@@ -75,10 +74,10 @@ document.addEventListener("htmx:beforeRequest", (e) => {
 
   // reset all csrf inputfields on page load
   let resetCSRF = function () {
-    loaded = false;
-    document
-      .querySelectorAll(".RockForm input[name=csrf]")
-      .forEach((input) => (input.value = ""));
+    document.querySelectorAll(".RockForm input[name=csrf]").forEach((input) => {
+      input.value = "";
+      input.closest(".RockForm").classList.remove("csrf-loaded");
+    });
   };
   document.addEventListener("DOMContentLoaded", resetCSRF);
   document.addEventListener("htmx:afterSwap", resetCSRF);
