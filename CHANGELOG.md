@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/baumrock/RockForms/compare/v1.1.0...v1.1.1) (2024-04-02)
+
+
+### Bug Fixes
+
+* add entities sanitizer on example form ([6f7a76c](https://github.com/baumrock/RockForms/commit/6f7a76cfc44107fa93d21bb7b0e79b3f400ea45f))
+
 ## [1.1.0](https://github.com/baumrock/RockForms/compare/v1.0.0...v1.1.0) (2024-04-02)
 
 
@@ -61,11 +68,4 @@
 
 * add setErrors() translation helper ([f48da89](https://github.com/baumrock/RockForms/commit/f48da895aad99b06df6cc330a331b1f2d529c05e))
 * new prependMarkup() and appendMarkup() ([7b3d884](https://github.com/baumrock/RockForms/commit/7b3d884996faee96f2eabd0178093f4123f1a8a8))
-
-## [0.15.1](https://github.com/baumrock/RockForms/compare/v0.15.0...v0.15.1) (2023-09-27)
-
-
-### Bug Fixes
-
-* entries not viewable ([98cb55b](https://github.com/baumrock/RockForms/commit/98cb55bded3cddbfb8ef14b17bbdc17d0ca1fdf3))
 
