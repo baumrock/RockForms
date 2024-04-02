@@ -716,6 +716,12 @@ class RockForms extends WireData implements Module, ConfigurableModule
       'value' => $this->successParam,
       'columnWidth' => 50,
     ]);
+
+    $fs->add([
+      'type' => 'markup',
+      'label' => 'RockForms.js Documentation',
+      'value' => 'Please see the <a href="https://www.baumrock.com/en/processwire/modules/rockforms/docs/js/" target="_blank">documentation about RockForms.js</a> for more information on how to properly integrate and use it in your projects.',
+    ]);
   }
 
   private function configSpam(&$inputfields)
