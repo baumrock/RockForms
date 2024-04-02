@@ -1,3 +1,19 @@
+## [1.1.0](https://github.com/baumrock/RockForms/compare/v1.0.0...v1.1.0) (2024-04-02)
+
+
+### Features
+
+* add checkbox to show RockForms data page in pagetree ([9083680](https://github.com/baumrock/RockForms/commit/9083680d8d52161ae33be6e6c00f01cef221a7ef))
+* add getNonSystemValues() method ([0b38cd9](https://github.com/baumrock/RockForms/commit/0b38cd9a04116c1630a1934b7fef858d2171a9a3))
+* add note about RockForms.js to module config ([62fd921](https://github.com/baumrock/RockForms/commit/62fd921c945e840910cde4a9f69e580575cfbab6))
+* add warning if RockForms.js is not loaded ([4ecea0f](https://github.com/baumrock/RockForms/commit/4ecea0f8ee3045f235677f654f59d72095e972d7))
+
+
+### Bug Fixes
+
+* csrf not updated after HTMX request ([89b17d3](https://github.com/baumrock/RockForms/commit/89b17d38086bcb87bf64bdd0847df18e267a495f))
+* loading csrf not working for multiple forms ([be4e685](https://github.com/baumrock/RockForms/commit/be4e68563152d6123be9223c60092d98424ed185))
+
 ## [1.0.0](https://github.com/baumrock/RockForms/compare/v0.17.0...v1.0.0) (2024-03-31)
 
 
@@ -52,18 +68,4 @@
 ### Bug Fixes
 
 * entries not viewable ([98cb55b](https://github.com/baumrock/RockForms/commit/98cb55bded3cddbfb8ef14b17bbdc17d0ca1fdf3))
-
-## [0.15.0](https://github.com/baumrock/RockForms/compare/v0.14.0...v0.15.0) (2023-09-11)
-
-
-### Features
-
-* add GUI for creating forms ([2a05e09](https://github.com/baumrock/RockForms/commit/2a05e099040d3f38d30ceed068757940e062f59c))
-* autoload rockforms from /site/modules ([7833614](https://github.com/baumrock/RockForms/commit/7833614236f3690a7cc566ed4f2b2f530fe9b193))
-* move renderTable to RockMigrations ([c2920b0](https://github.com/baumrock/RockForms/commit/c2920b052963d80b3d839281d126d4f5e0b6669a))
-
-
-### Bug Fixes
-
-* add missing uk-select class ([74765b9](https://github.com/baumrock/RockForms/commit/74765b94ee1a96364ae9500a4ee4298d1781d676))
 
