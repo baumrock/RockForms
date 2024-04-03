@@ -4,7 +4,7 @@ In RockForms every form is presented of one PHP file and is itself its own PHP c
 
 <img src=rockforms.png class=blur>
 
-Theoretically you can create your form files in any folder you like (for example in custom modules), but the GUI will place it in the default folder, which is `/site/assets/RockForms`.
+Theoretically you can create your form files in any folder you like (for example in custom modules), but the GUI will place it in the default folder, which is `/site/templates/RockForms`.
 
 A basic RockForm looks like this:
 
