@@ -1,3 +1,10 @@
+## [1.2.0](https://github.com/baumrock/RockForms/compare/v1.1.1...v1.2.0) (2024-04-04)
+
+
+### Features
+
+* improve security features and docs ([c439129](https://github.com/baumrock/RockForms/commit/c43912949ba90230f2513ad9e5b0955897614ec5))
+
 ## [1.1.1](https://github.com/baumrock/RockForms/compare/v1.1.0...v1.1.1) (2024-04-02)
 
 
@@ -60,12 +67,4 @@
 * create RockForms folder if not exist ([5bef552](https://github.com/baumrock/RockForms/commit/5bef552a0bff4609dd9247e136628e0bfba8d73f))
 * typo ([1425782](https://github.com/baumrock/RockForms/commit/142578218094374dacc46a55263ff7611d5c867f))
 * use integer ([e15c3ad](https://github.com/baumrock/RockForms/commit/e15c3ad07baecf00232960bca13196040e887f99))
-
-## [0.16.0](https://github.com/baumrock/RockForms/compare/v0.15.1...v0.16.0) (2024-01-03)
-
-
-### Features
-
-* add setErrors() translation helper ([f48da89](https://github.com/baumrock/RockForms/commit/f48da895aad99b06df6cc330a331b1f2d529c05e))
-* new prependMarkup() and appendMarkup() ([7b3d884](https://github.com/baumrock/RockForms/commit/7b3d884996faee96f2eabd0178093f4123f1a8a8))
 
