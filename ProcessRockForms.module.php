@@ -140,6 +140,19 @@ class ProcessRockForms extends Process
         </script>",
     ]);
 
+    if ($this->wire->user->isSuperuser()) {
+      $url = $this->wire->pages->get(2)->url .
+        'setup/logs/view/rockforms-spam/';
+      $form->add([
+        'type' => 'markup',
+        'label' => 'Spam',
+        'icon' => 'ban',
+        'value' => "Please see the logs <a href=$url>here</a>.",
+        'collapsed' => Inputfield::collapsedYes,
+        'notes' => 'This field is only shown to superusers.',
+      ]);
+    }
+
     return $form->render();
   }
 

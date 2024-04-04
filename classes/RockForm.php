@@ -13,9 +13,12 @@ use ProcessWire\RockForms;
 use ProcessWire\RockFrontend;
 use ProcessWire\RockMails;
 use ProcessWire\WireData;
+use ProcessWire\WireException;
 use ReflectionClass;
+use ReflectionException;
 use RockForms\Controls\Markup;
 
+use function ProcessWire\rockforms;
 use function ProcessWire\rockmigrations;
 use function ProcessWire\wire;
 
@@ -50,8 +53,19 @@ class RockForm extends Form
     };
     $this->onValidate[] = function (RockForm $form) {
       if ($form::CSRF) $form->validateCSRF();
+      // first we check the form for spam
       $form->validateAntiSpam();
+
+      // then we trigger processInput so the user can add logic
+      // and maybe set isSpam manually (when using external tools)
       $form->processInput();
+
+      // log spam and block sammpers
+      $form->saveToLog();
+      $form->blockSpammer();
+
+      // trigger success method
+      $form->triggerProcessSuccess();
     };
     $this->init();
   }
@@ -120,6 +134,7 @@ class RockForm extends Form
     if (!$delay) return;
     $id = "timeonpage-" . uniqid();
     $control = $this->addText("timeonpage")
+      ->setOption('rockforms-system', true)
       ->setHtmlAttribute("id", $id)
       ->setHtmlAttribute("hidden", true)
       ->addRule($this::FILLED)
@@ -140,6 +155,20 @@ class RockForm extends Form
   public function appendMarkup(string $markup): void
   {
     $this->appendMarkup .= $markup;
+  }
+
+  private function blockSpammer(): void
+  {
+    if ($this->hasErrors()) return;
+    if (!$this->isSpam) return;
+    if (rockforms()->dontBlockSpammers) return;
+    if (!$this->wire->modules->isInstalled('WireRequestBlocker')) return;
+    wire()->modules->get('WireRequestBlocker')
+      ->blocker()
+      ->blockIp($_SERVER['REMOTE_ADDR'], [
+        'url' => $this->wire->page->httpUrl(),
+        'reason' => "Form Spam",
+      ]);
   }
 
   /**
@@ -197,22 +226,6 @@ class RockForm extends Form
   }
 
   /**
-   * Get submitted values without system fields like honeypot/csrf
-   */
-  public function getNonSystemValues(): WireData
-  {
-    $values = new WireData();
-    $values->setArray($this->getValues('array'));
-    foreach ($this->getFields() as $name => $field) {
-      $remove = false;
-      if ($field->getOption("rockforms-honey")) $remove = true;
-      elseif ($field->getOption("rockforms-system")) $remove = true;
-      if ($remove) $values->remove($name);
-    }
-    return $values;
-  }
-
-  /**
    * Get current url
    * By default this will also include the query string
    * eg /foo/?bar=baz
@@ -253,6 +266,13 @@ class RockForm extends Form
   }
 
   /**
+   * Should be implemented by Forms
+   */
+  public function processSuccess()
+  {
+  }
+
+  /**
    * Renders form.
    */
   public function render(...$args): void
@@ -260,11 +280,16 @@ class RockForm extends Form
     if ($this->showSuccess()) {
       if (method_exists($this, "renderSuccess")) {
         // get submitted values from session and reset session afterwards
-        // this to persist values across the submit-redirect-pattern
+        // this is to persist values across the submit-redirect-pattern
         $values = $this->wire()->wire(new WireData());
         $arr = $this->wire()->session->rockformValues;
         if (is_array($arr)) $values->setArray($arr);
         $this->wire()->session->rockformValues = false;
+
+        // entity encode all valuse to be safe for direct ouput
+        foreach ($values as $k => $v) {
+          $values[$k] = wire()->sanitizer->entities1($v);
+        }
 
         // render success message
         // we wrap it in a div with the id of the form to make sure
@@ -313,7 +338,7 @@ class RockForm extends Form
 
   public function saveEntry($title, $values = null): Entry
   {
-    if (!$values) $values = $this->getNonSystemValues()->getArray();
+    if (!$values) $values = $this->values()->getArray();
 
     // save entry
     $entry = new Entry();
@@ -327,6 +352,19 @@ class RockForm extends Form
     $entry->meta('url', $this->getUrl());
 
     return $entry;
+  }
+
+  private function saveToLog(): void
+  {
+    if (!$this->isSpam) return;
+    if ($this->hasErrors()) return;
+    $values = $this->values(true);
+    $values->_ip = $this->wire->session->getIP();
+    $this->wire->log->save(
+      'rockforms-spam',
+      print_r($values->getArray(), true),
+      ['url' => '']
+    );
   }
 
   /**
@@ -374,6 +412,13 @@ class RockForm extends Form
       $this->rockforms()->successParam,
       'string'
     );
+  }
+
+  private function triggerProcessSuccess(): void
+  {
+    if ($this->isSpam) return;
+    if ($this->hasErrors()) return;
+    $this->processSuccess();
   }
 
   /**
@@ -424,6 +469,26 @@ class RockForm extends Form
       }
     }
     $this->addError("Invalid CSRF token");
+  }
+
+  /**
+   * Get values of form
+   * @param bool $systemFields
+   * @return WireData
+   */
+  public function values($systemFields = false): WireData
+  {
+    $values = new WireData();
+    $values->setArray($this->getValues('array'));
+    if ($systemFields === false) {
+      foreach ($this->getFields() as $name => $field) {
+        $remove = false;
+        if ($field->getOption("rockforms-honey")) $remove = true;
+        elseif ($field->getOption("rockforms-system")) $remove = true;
+        if ($remove) $values->remove($name);
+      }
+    }
+    return $values;
   }
 
   public function wire(): ProcessWire

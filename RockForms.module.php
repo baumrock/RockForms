@@ -754,5 +754,13 @@ class RockForms extends WireData implements Module, ConfigurableModule
       A setting of 0 disables this feature.',
       'columnWidth' => 50,
     ]);
+
+    $fs->add([
+      'type' => 'checkbox',
+      'name' => 'dontBlockSpammers',
+      'label' => 'WireRequestBlocker',
+      'description' => 'If WireRequestBlocker is installed RockForms will block spammers if they submit a form and the submission is considered spam.',
+      'checkboxLabel' => 'Do not block spammers using WireRequestBlocker',
+    ]);
   }
 }

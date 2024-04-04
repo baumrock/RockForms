@@ -21,16 +21,23 @@ class {name} extends RockForm
     $form->addSubmit("submit", "Submit your name");
   }
 
+  /**
+   * processInput will be executed on every form submission
+   * even if the form has errors or is spam
+   */
   public function processInput()
   {
-    // this method will always be processed!
-    // you can do an early exit if the form has errors
-    if ($this->hasErrors()) return;
+    if ($this->isSpam) {
+      // ...
+    }
 
-    // getValues() returns all values including CSRF + spam protection fields
-    // $values = $this->getValues();
-    // getNonSystemValues() returns only non-system fields
-    $values = $this->getNonSystemValues();
+    if ($this->hasErrors()) {
+      // ...
+    }
+
+    // get values without system fields (csrf, honeypot)
+    // if you want to get system fields as well use $this->values(true)
+    $values = $this->values();
 
     // you can throw custom errors like this:
     if ($values->surname === 'baz') {
@@ -38,9 +45,12 @@ class {name} extends RockForm
         ->getComponent('surname')
         ->addError('--- name baz not allowed ---');
     }
+  }
 
-    // you can save entries to database like this
-    if ($this->hasErrors()) return;
+  public function processSuccess() {
+    $values = $this->values();
+
+    // you can save entries to the database like this
     $fullname = "{$values->forename} {$values->surname}";
     $this->saveEntry("Form submitted by $fullname");
 

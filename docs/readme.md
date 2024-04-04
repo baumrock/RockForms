@@ -16,15 +16,19 @@ In this example we will build the following form.
 
 [rockforms=Quickstart]
 
-- Try to submit an empty form
+- Submit an empty form
 
   You will see that the form will not submit and show an error message! The interesting part here is that this validation happens on the client side without ever hitting the server. If anybody ever tried to manipulate your form via Devtools, no worries, the validation will also happen on the server side as well!
 
-- Try to submit the form with given name "baz"
+- Submit the form with given name "baz"
 
   You will see that the form submits, but it will show an error. This is an example to demonstrate that server-side validation is also possible (for example validating sensitive information without exposing business secrets).
 
   Another great thing is that even when the form submission was not successful all inputfield values will be restored! Have you ever submitted a long form and then got an error message saying "please try it again" and all input was lost? Uncool! This will not happen when using RockForms.
+
+- Submit the form with "&lt;script>alert('hello world')&lt;/script>" as first name
+
+  You will see that RockForms will automatically entity encode the value in the returned success message. See more about <a href="./security/">security</a> in the docs!
 
 ## Now let's get to the code!
 
@@ -43,7 +47,7 @@ $form
 Now our form knows which fields to show, great. The next thing is to define what it should do when the form is processed - for example it could send an E-Mail, it could create a User, it could create an Ivoice, whatever. Imagination and your PHP skills are the limit 😉
 
 ```php
-$values = $form->getValues();
+$values = $form->values();
 if ($values->surname == 'baz') {
   $form['surname']->addError('Sorry, baz is not allowed as given name.');
 }

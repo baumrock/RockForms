@@ -1,22 +1,23 @@
 # Processing Form Submissions
 
-Processing form submissions is done in the `processInput` method of your form. You can do whatever logic you need here.
+Processing form submissions is done in the `processInput` and `processSuccess` methods of your form. You can do whatever logic you need here.
 
-## saveEntry
+## processSuccess()
 
-To save form submissions within your ProcessWire backend, you can utilize the `saveEntry` method, ensuring that all data is securely stored and easily accessible for further processing or analysis.
+This method is executed only if the form has no errors and is not spam. This is the perfect place for sending mails or saving entries to the database.
+
+### saveEntry()
+
+To save form submissions within your ProcessWire backend, you can utilize the `saveEntry()` method, ensuring that all data is securely stored and easily accessible for further processing or analysis.
 
 ```php
-public function processInput()
+public function processSuccess()
 {
-  // this is executed on every submit
+  // get values (without system fields like CSRF)
+  $values = $this->getValues(false);
 
-  // all below is executed on submissions without errors
-  if ($this->hasErrors()) return;
-
-  // save entry do pw backend
-  $values = $this->getValues();
-  $this->saveEntry($values->mail); // use mail as title of page
+   // use mail as title of page
+  $this->saveEntry($values->mail);
 }
 ```
 
@@ -28,25 +29,19 @@ The result is something like this:
 
 Please see docs about <a href="../double/">Double Opt In</a>.
 
-## Sending Mails
+### Sending Mails
 
-Just use the awesome ProcessWire API to send mail notifications upon form submissions. Take this advanced example for inspiration:
+Just use the awesome ProcessWire API to send mail notifications upon form submissions:
 
 ```php
-public function processInput()
+public function processSuccess()
 {
-  if ($this->isSpam) {
-    wire()->modules->get('WireRequestBlocker')
-      ->blocker()
-      ->blockIp($_SERVER['REMOTE_ADDR'], [
-        'url' => $this->wire->page->httpUrl(),
-        'reason' => "Contactform Spam",
-      ]);
-  }
-  if ($this->hasErrors()) return;
-
   // get values without system fields like CSRF or honeypots
-  $values = $this->getNonSystemValues();
+  $values = $this->values();
+
+  // you can add additional information to your email by
+  // adding custom runtime properties to your values!
+  // here we add the "url" of the current page and show it in the email
   $values->url = $this->wire->page->httpUrl();
 
   // save entry to backend
@@ -64,9 +59,15 @@ public function processInput()
 }
 ```
 
-This will send an (admittedly ugly) email to you and your client. If you also want to send a confirmation to your client you can make your emails look nicer with custom HTML. RockMails can help here ;)
+This will send an (admittedly ugly) email to you and your client. If you also want to send a confirmation to your client you can make your emails look nicer with custom HTML. RockMails can help here!
 
-## Throwing Errors
+## processInput()
+
+This method is executed on every form submission, even when the form has errors or is spam.
+
+### Throwing Errors
+
+In `processInput` you can add custom logic and throw custom arrows like this:
 
 ```php
 public function processInput()

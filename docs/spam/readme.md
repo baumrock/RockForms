@@ -2,6 +2,9 @@
 
 RockForms makes it easy to protect your forms from spambots.
 
+```php
+```
+
 ## Submit Delay
 
 RockForms introduces an innovative spam protection method that enhances user experience while effectively keeping bots at bay. This method involves a hidden text field within the form, dynamically populated through JavaScript as the user navigates the site. The field's value increments every second, tracking the user's visit duration.
@@ -46,11 +49,12 @@ Integration is straightforward! Simply add a custom check to your Form's `proces
     // add an error to the form and early exit
     if($isSpam) {
       $this->addError("We don't like spam, sorry!");
-      return;
-    }
 
-    // save form to DB
-    // send mail notification
+      // let RockForms know that this is spam
+      // if you want the spam submission to be logged
+      // if not, just return without setting this flag
+      $this->isSpam = true;
+    }
   }
 ```
 

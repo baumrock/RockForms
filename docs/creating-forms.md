@@ -24,11 +24,20 @@ class Newsletter extends RockForm
   public function processInput()
   {
     // form processing after submit
+    // this will be executed on every submit
+  }
+
+  public function processSuccess()
+  {
+    // process a successful form submission
+    // this will be executed only if:
+    // - no errors
+    // - not spam
   }
 
   public function renderSuccess($values)
   {
-    // render success message
+    // show success message to user on the frontend
   }
 }
 ```
@@ -92,6 +101,8 @@ echo $rockforms->render("Newsletter");
 ```php
 public function renderSuccess($values)
 {
+  // NOTE: All values will automatically be entity encoded here.
+  // See docs about security to understand how and when that works!
   return "Thank you, {$values->name}! We will get back to you soon.";
 }
 ```
