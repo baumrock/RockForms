@@ -66,15 +66,9 @@ class {name} extends RockForm
     $mail->send();
   }
 
-  public function renderSuccess($values)
+  public function renderSuccess($entityValues)
   {
-    $name = $values->forename;
-    if ($values->surname) $name .= " " . $values->surname;
-
-    // IMPORTANT:
-    // Make sure to never output HTML from user input directly
-    $name = $this->wire->sanitizer->entities($name);
-
-    return "<div class='uk-alert uk-alert-success'>Thank you for submitting the form, $name!</div>";
+    // NOTE: $entityValues are safe to output in your HTML
+    return "<div class='uk-alert uk-alert-success'>Thank you for submitting the form, {$entityValues->forename}!</div>";
   }
 }

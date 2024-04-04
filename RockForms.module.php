@@ -729,7 +729,7 @@ class RockForms extends WireData implements Module, ConfigurableModule
     $fs = new InputfieldFieldset();
     $fs->label = "Spam Protection";
     $fs->icon = "filter";
-    $fs->description = 'RockForms spam protection is designed to be as simple as possible for the user filling out the form. Another important requirement is to make it work with ProCache\'d pages, which is why forms do not use CSRF and use JavaScript-based techniques instead. Is that 100% accurate or secure? No. Does it work for my clients? Yes :) [See docs for details](https://www.baumrock.com/en/processwire/modules/rockforms/docs/spam/).';
+    $fs->description = 'RockForms spam protection is designed to be as simple as possible for the user filling out the form. Another important requirement is to make it work with ProCache\'d pages which is why we use JavaScript-based techniques as much as possible. Is that 100% accurate or secure? No. Does it work for my clients? Yes :) [See docs for details](https://www.baumrock.com/en/processwire/modules/rockforms/docs/spam/).';
     $inputfields->add($fs);
 
     $fs->add([
