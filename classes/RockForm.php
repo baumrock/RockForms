@@ -4,16 +4,19 @@ namespace RockForms;
 
 use Nette\Forms\Controls\TextInput;
 use Nette\Forms\Form;
+use Nette\Http\FileUpload;
 use Nette\InvalidStateException;
 use Nette\InvalidArgumentException;
 use Nette\NotSupportedException;
 use Nette\Utils\RegexpException;
+use ProcessWire\Pagefiles;
 use ProcessWire\ProcessWire;
 use ProcessWire\RockForms;
 use ProcessWire\RockFrontend;
 use ProcessWire\RockMails;
 use ProcessWire\WireData;
 use ProcessWire\WireException;
+use ProcessWire\WireTempDir;
 use ReflectionClass;
 use ReflectionException;
 use RockForms\Controls\Markup;
@@ -25,6 +28,7 @@ use function ProcessWire\wire;
 class RockForm extends Form
 {
   const CSRF = true;
+  const HTMX = true;
   const honeyErrorMessage = "Sorry, we don't like Spam!";
 
   public $appendMarkup = false;
@@ -225,6 +229,11 @@ class RockForm extends Form
     return $this->getElementPrototype()->id;
   }
 
+  public function getSanitizedFilename($file): string
+  {
+    return $this->wire->sanitizer->fileName($file->getUntrustedName());
+  }
+
   /**
    * Get current url
    * By default this will also include the query string
@@ -288,7 +297,11 @@ class RockForm extends Form
 
         // entity encode all valuse to be safe for direct ouput
         foreach ($values as $k => $v) {
-          $values[$k] = wire()->sanitizer->entities1($v);
+          $val = $v;
+          if ($v instanceof FileUpload) {
+            $val = $v->hasFile() ? $v->getSanitizedName() : '';
+          }
+          $values[$k] = wire()->sanitizer->entities1($val);
         }
 
         // render success message
@@ -336,7 +349,7 @@ class RockForm extends Form
     return $this->wire->modules->get('RockMails');
   }
 
-  public function saveEntry($title, $values = null): Entry
+  public function saveEntry($title, $values = null, $saveFiles = true): Entry
   {
     if (!$values) $values = $this->values()->getArray();
 
@@ -345,8 +358,32 @@ class RockForm extends Form
     $entry->set('title', $title);
     $entry->set(Entry::field_form, $this->className());
     $entry->set(Entry::field_labels, json_encode($this->fieldLabels()));
-    $entry->set(Entry::field_values, json_encode((array)$values));
+    $entry->set(Entry::field_values, json_encode($this->sleepValues($values)));
     $entry->save();
+
+    // save submitted files
+    if ($saveFiles) {
+      $files = [];
+      foreach ($values as $k => $file) {
+        if ($file instanceof FileUpload) $files[] = $file;
+        else if (is_array($file)) $files = array_merge($files, $file);
+      }
+      foreach ($files as $file) {
+        if (!$file instanceof FileUpload) continue;
+        if (!$file->hasFile()) continue;
+
+        $tmpfilename = $file->getTemporaryFile();
+        $newbasename = $this->getSanitizedFilename($file);
+        $tmp = new WireTempDir("rockforms-form-" . $this->getID());
+        $newfilename = $tmp . $newbasename;
+        move_uploaded_file($tmpfilename, $newfilename);
+
+        $filesfield = $entry->getUnformatted($entry::field_files);
+        $filesfield->add($newfilename);
+        $entry->set($entry::field_files, $filesfield);
+      }
+      $entry->save($entry::field_files);
+    }
 
     // save meta data to this entry
     $entry->meta('url', $this->getUrl());
@@ -401,6 +438,42 @@ class RockForm extends Form
     }
   }
 
+  public function sleepValue($val): mixed
+  {
+    if (is_string($val)) return $val;
+    if ($val instanceof FileUpload) {
+      if ($val->hasFile()) return $this->getSanitizedFilename($val);
+      return '';
+    }
+    if (is_array($val)) {
+      $str = "";
+      foreach ($val as $item) {
+        // file upload?
+        if ($item instanceof FileUpload) {
+          if (!$item->hasFile()) continue;
+          $str .= $this->getSanitizedFilename($item) . "\n";
+        } else {
+          $str .= $this->sleepValue($item);
+        }
+      }
+      return $str;
+    }
+    return $val;
+  }
+
+  public function sleepValues($values): array
+  {
+    $arr = [];
+    foreach ($values as $k => $v) {
+      try {
+        $arr[$k] = (string)$this->sleepValue($v);
+      } catch (\Throwable $th) {
+        $arr[$k] = $th->getMessage();
+      }
+    }
+    return $arr;
+  }
+
   public function submitCount(): int
   {
     return (int)$this->rockforms()->submitCount->get($this->name);
@@ -431,6 +504,9 @@ class RockForm extends Form
   {
     $this->setHtmlAttribute("hx-post", "./");
     $this->setHtmlAttribute("hx-swap", "outerHTML");
+    if ($this->wire->config->rockformsPreserveSuccess) {
+      $this->setHtmlAttribute("hx-swap", "afterend");
+    }
     $this->setHtmlAttribute("hx-select", "#" . $this->getID());
   }
 

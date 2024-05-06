@@ -2,7 +2,9 @@
 
 namespace RockForms;
 
+use ProcessWire\FieldtypeFile;
 use ProcessWire\Inputfield;
+use ProcessWire\InputfieldWrapper;
 use ProcessWire\Page;
 use ProcessWire\WireData;
 use RockMigrations\MagicPage;
@@ -16,10 +18,11 @@ class Entry extends Page
   const prefix = "rockforms_entry_";
   const confirmmeta = "confirmed";
 
-  const field_form = self::prefix . "form";
+  const field_form   = self::prefix . "form";
   const field_values = self::prefix . "values";
   const field_labels = self::prefix . "labels";
-  const field_user = self::prefix . "user";
+  const field_user   = self::prefix . "user";
+  const field_files  = self::prefix . "files";
 
   public function __construct()
   {
@@ -46,7 +49,7 @@ class Entry extends Page
     $this->removeSaveButton($form);
   }
 
-  public function editFormContent($form)
+  public function editFormContent(InputfieldWrapper $form)
   {
     $userid = $this->getFormatted(self::field_user);
     if ($f = $form->get(self::field_form)) {
@@ -83,10 +86,18 @@ class Entry extends Page
       'icon' => 'database',
       'value' => $this->rockmigrations()->renderTable(
         $this->getValues(),
-        $this->labels()->getArray()
+        [
+          'labels' => $this->labels()->getArray(),
+          'nl2br' => true,
+          'tooltips' => true,
+        ]
       ),
       'notes' => 'Use ->getValues() to access these values or ->getValue("foo") to get a single value.',
     ]);
+
+    // move files after form data
+    $f = $form->children()->last();
+    $form->insertAfter($form->get(self::field_files), $f);
 
     $meta = $this->meta()->getArray();
     $this->unsetArraykey($meta, self::confirmmeta);
@@ -94,11 +105,7 @@ class Entry extends Page
       'type' => 'markup',
       'label' => 'Page Meta',
       'icon' => 'database',
-      'value' => $this->rockmigrations()->renderTable(
-        array_values($meta),
-        array_keys($meta),
-        true
-      ),
+      'value' => $this->rockmigrations()->renderTable($meta),
       'notes' => "Use \$page->meta('key', 'value') to add key value pairs.",
     ]);
 
@@ -216,6 +223,17 @@ class Entry extends Page
           'icon' => 'user-circle-o',
           'collapsed' => Inputfield::collapsedHidden,
         ],
+        self::field_files => [
+          'type' => 'file',
+          'label' => 'Attachments',
+          'maxFiles' => 0,
+          'descriptionRows' => 1,
+          'extensions' => 'pdf png jpg jpeg',
+          'icon' => 'files-o',
+          'outputFormat' => FieldtypeFile::outputFormatArray,
+          'collapsed' => Inputfield::collapsedBlankLocked,
+          'notes' => 'Use ->files() or ->files()->get("filename.pdf") to access attachments.',
+        ],
       ],
       'templates' => [
         self::tpl => [
@@ -228,6 +246,7 @@ class Entry extends Page
             self::field_user,
             self::field_labels,
             self::field_values,
+            self::field_files,
           ],
           'noSettings' => true,
           'noParents' => true,

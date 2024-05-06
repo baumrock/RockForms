@@ -14,6 +14,22 @@ RockForms is designed to add as little extra load to your site as possible, ensu
 
 This is why RockForms will use HTMX for all forms by default. If you are already using HTMX on your site RockFrontend will not load it again.
 
+## Disabling HTMX
+
+If you don't want to use HTMX for your form you can set a flag like this:
+
+```php
+class Contact extends RockForm
+{
+  const HTMX = false;
+
+  public function buildForm()
+  {
+    ...
+  }
+}
+```
+
 ## Customizing HTMX Markup
 
 The default setup for HTMX in RockForms is this:
@@ -30,6 +46,13 @@ If you need custom attributes simply add them as needed or replace the existing 
 $form->setHtmlAttribute("hx-post", false);
 ```
 
+Pro-Tipp: You can make RockForms preserve the form inputs so that you can submit the same form multiple times, which can be very handy while working on the `processInput()` method of your form!
+
+```php
+// in site/config.php
+$config->rockformsPreserveSuccess = true;
+```
+
 ## Adding Loading Animations
 
 When using HTMX RockForms will add a loading overlay to your page after the form was submitted. You can use any loader like the ones at [cssloaders.github.io](https://cssloaders.github.io/) or build your own. See the module config page for options!
@@ -37,6 +60,29 @@ When using HTMX RockForms will add a loading overlay to your page after the form
 You can try a live preview:
 
 [rockforms=Quickstart]
+
+## Custom Error Message
+
+By default RockForms will show a JS alert if the HTMX swap fails. This alert will show an english error message, but you can customize that to show whatever you want (eg a simple alert with different text or even a UIkit modal or such).
+
+```js
+// put that in your main js file
+// the delay is set to 500ms in this example
+// the default alert shows up after 1000ms, so make sure yours fires earlier
+document.addEventListener("htmx:beforeSwap", function (e) {
+  let selector = "#" + e.target.id;
+  setTimeout(() => {
+    if (document.querySelector(selector)) return;
+
+    // add rf-custom-alert class to body
+    // this tells RockForms to not show the default alert
+    document.body.classList.add("rf-custom-alert");
+
+    // show the alert message
+    alert("This is my custom HTMX alert!");
+  }, 500);
+});
+```
 
 ## Tracking Form Submissions
 
