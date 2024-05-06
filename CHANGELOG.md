@@ -1,3 +1,10 @@
+## [1.4.0](https://github.com/baumrock/RockForms/compare/v1.3.0...v1.4.0) (2024-05-06)
+
+
+### Features
+
+* improve error messages ([838baef](https://github.com/baumrock/RockForms/commit/838baef282bef9dd080cfc38ff7e1d34460996f7))
+
 ## [1.3.0](https://github.com/baumrock/RockForms/compare/v1.2.1...v1.3.0) (2024-05-06)
 
 
@@ -25,20 +32,4 @@
 ### Bug Fixes
 
 * add entities sanitizer on example form ([6f7a76c](https://github.com/baumrock/RockForms/commit/6f7a76cfc44107fa93d21bb7b0e79b3f400ea45f))
-
-## [1.1.0](https://github.com/baumrock/RockForms/compare/v1.0.0...v1.1.0) (2024-04-02)
-
-
-### Features
-
-* add checkbox to show RockForms data page in pagetree ([9083680](https://github.com/baumrock/RockForms/commit/9083680d8d52161ae33be6e6c00f01cef221a7ef))
-* add getNonSystemValues() method ([0b38cd9](https://github.com/baumrock/RockForms/commit/0b38cd9a04116c1630a1934b7fef858d2171a9a3))
-* add note about RockForms.js to module config ([62fd921](https://github.com/baumrock/RockForms/commit/62fd921c945e840910cde4a9f69e580575cfbab6))
-* add warning if RockForms.js is not loaded ([4ecea0f](https://github.com/baumrock/RockForms/commit/4ecea0f8ee3045f235677f654f59d72095e972d7))
-
-
-### Bug Fixes
-
-* csrf not updated after HTMX request ([89b17d3](https://github.com/baumrock/RockForms/commit/89b17d38086bcb87bf64bdd0847df18e267a495f))
-* loading csrf not working for multiple forms ([be4e685](https://github.com/baumrock/RockForms/commit/be4e68563152d6123be9223c60092d98424ed185))
 
