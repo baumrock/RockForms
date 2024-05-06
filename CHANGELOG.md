@@ -1,3 +1,10 @@
+## [1.3.0](https://github.com/baumrock/RockForms/compare/v1.2.1...v1.3.0) (2024-05-06)
+
+
+### Features
+
+* add support for file uploads ([ed358a9](https://github.com/baumrock/RockForms/commit/ed358a98c355c7363c3a61479ac84e8a4ed8bc3e))
+
 ## [1.2.1](https://github.com/baumrock/RockForms/compare/v1.2.0...v1.2.1) (2024-04-04)
 
 
@@ -34,19 +41,4 @@
 
 * csrf not updated after HTMX request ([89b17d3](https://github.com/baumrock/RockForms/commit/89b17d38086bcb87bf64bdd0847df18e267a495f))
 * loading csrf not working for multiple forms ([be4e685](https://github.com/baumrock/RockForms/commit/be4e68563152d6123be9223c60092d98424ed185))
-
-## [1.0.0](https://github.com/baumrock/RockForms/compare/v0.17.0...v1.0.0) (2024-03-31)
-
-
-### ⚠ BREAKING CHANGES
-
-* Just bumping version number to 1.0.0
-
-### Features
-
-* add icons to templates ([fcf3ea8](https://github.com/baumrock/RockForms/commit/fcf3ea86aa8ab72b4adc593db882bf270223a3ad))
-* improve renderer and add docs ([0244b4f](https://github.com/baumrock/RockForms/commit/0244b4faa9a93317be0341bdf71479f28ed9e11c))
-* initial public release ([a228b30](https://github.com/baumrock/RockForms/commit/a228b30ab9ac600a2d471d2a31a3d95b15384c78))
-* refactoring and cleanup GUI ([ccf0a01](https://github.com/baumrock/RockForms/commit/ccf0a0149555b4eef3965b5ebad6efca569270e0))
-* support multi forms on one page ([cc8342a](https://github.com/baumrock/RockForms/commit/cc8342a21328833819f6a43b99332be547e11430))
 
