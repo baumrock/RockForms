@@ -22,6 +22,10 @@ function rockforms(): RockForms
   return wire()->modules->get('RockForms');
 }
 
+// load nette autoloader even before the rockforms class
+// this is necessary for fileuploads to work properly
+require_once __DIR__ . "/vendor/autoload.php";
+
 class RockForms extends WireData implements Module, ConfigurableModule
 {
   const csrfstring = "rockforms-csrf";
@@ -49,7 +53,6 @@ class RockForms extends WireData implements Module, ConfigurableModule
   public function init()
   {
     require_once __DIR__ . "/RockFormsPage.php";
-    require_once __DIR__ . "/vendor/autoload.php";
     $this->wire->classLoader->addNamespace("RockForms", __DIR__ . "/classes");
     $this->wire->classLoader->addNamespace("RockForms", __DIR__ . "/PageClasses");
     $this->wire->classLoader->addNamespace("RockForms\Renderer", __DIR__ . "/RockFormsRenderer");
@@ -163,7 +166,7 @@ class RockForms extends WireData implements Module, ConfigurableModule
     $form->addHoney();
 
     // add htmx markup if it is not disabled
-    if (!$this->noHTMX) $form->useHTMX();
+    if ($form::HTMX !== false && !$this->noHTMX) $form->useHTMX();
 
     // add regular form fields
     $form->buildForm();

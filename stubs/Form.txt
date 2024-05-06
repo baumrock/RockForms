@@ -9,6 +9,9 @@ class {name} extends RockForm
   // to disable CSRF for this form
   // const CSRF = false;
 
+  // to disable HTMX for this form
+  // const HTMX = false;
+
   public function buildForm()
   {
     $form = $this;

@@ -81,4 +81,23 @@ document.addEventListener("htmx:beforeRequest", (e) => {
   };
   document.addEventListener("DOMContentLoaded", resetCSRF);
   document.addEventListener("htmx:afterSwap", resetCSRF);
+
+  // error handling
+  // this shows the default error if no custom alert is setup
+  document.addEventListener("htmx:beforeSwap", function (e) {
+    setTimeout(() => {
+      if (document.body.classList.contains("rf-custom-alert")) return;
+      if (document.querySelector("#" + e.target.id)) return;
+      alert("Something went wrong - please contact support (HTMX swap failed)");
+    }, 1000);
+  });
+  // this shows an error with helpful instructions in the console
+  document.addEventListener("htmx:beforeSwap", function (e) {
+    setTimeout(() => {
+      if (document.querySelector("#" + e.target.id)) return;
+      console.error(
+        "Error on HTMX swap. Inspect returned markup in network tab!"
+      );
+    }, 400);
+  });
 })();

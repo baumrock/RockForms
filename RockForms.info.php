@@ -16,10 +16,10 @@ $info = [
   'icon' => 'paper-plane-o',
 
   // PHP8 for named arguments
-  // rockmigrations 4.2.0 for minify directory feature
+  // rockmigrations 4.3.0 for renderTable() method
   'requires' => [
     'PHP>=8.0',
-    'RockMigrations>=4.2.0',
+    'RockMigrations>=4.3.0',
   ],
 
   'installs' => [
