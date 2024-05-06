@@ -491,7 +491,14 @@ class RockForm extends Form
   {
     if ($this->isSpam) return;
     if ($this->hasErrors()) return;
-    $this->processSuccess();
+
+    // try to execute processSuccess and catch exceptions
+    // exceptions will be shown as error message to the user
+    try {
+      $this->processSuccess();
+    } catch (\Throwable $th) {
+      $this->addError($th->getMessage());
+    }
   }
 
   /**

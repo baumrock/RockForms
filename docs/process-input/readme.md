@@ -67,7 +67,7 @@ This method is executed on every form submission, even when the form has errors 
 
 ### Throwing Errors
 
-In `processInput` you can add custom logic and throw custom arrows like this:
+In `processInput` and `processSuccess` you can add custom logic and throw custom arrows like this:
 
 ```php
 public function processInput()
@@ -75,6 +75,8 @@ public function processInput()
   // throw error on the form itself
   if($foo === 'bar') {
     $this->addError("Something is wrong");
+
+    // prevent further execution by early exit if needed
     return;
   }
 
