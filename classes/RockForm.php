@@ -9,16 +9,13 @@ use Nette\InvalidStateException;
 use Nette\InvalidArgumentException;
 use Nette\NotSupportedException;
 use Nette\Utils\RegexpException;
-use ProcessWire\Pagefiles;
 use ProcessWire\ProcessWire;
 use ProcessWire\RockForms;
 use ProcessWire\RockFrontend;
 use ProcessWire\RockMails;
 use ProcessWire\WireData;
-use ProcessWire\WireException;
 use ProcessWire\WireTempDir;
 use ReflectionClass;
-use ReflectionException;
 use RockForms\Controls\Markup;
 
 use function ProcessWire\rockforms;
@@ -29,6 +26,7 @@ class RockForm extends Form
 {
   const CSRF = true;
   const HTMX = true;
+  const SUBMITDELAY = true;
   const honeyErrorMessage = "Sorry, we don't like Spam!";
 
   public $appendMarkup = false;
@@ -86,12 +84,22 @@ class RockForm extends Form
    */
   public function addCSRF(): void
   {
+    // no csrf --> early exit
     if (!$this::CSRF) return;
-    $this->addText("csrf", "CSRF Token")
-      ->setOption('rockforms-system', true)
-      ->addRule($this::FILLED, "Error loading CSRF Token")
-      ->addCondition($this::EQUAL, "loading")
-      ->addRule($this::BLANK, "Loading CSRF token - please wait!");
+    if ($this::CSRF === 'pageload') {
+      // we load the csrf token instantly on pageload
+      // this is for forms without any caching (eg RockCommerce checkout)
+      $this->addText("csrf", "CSRF Token")
+        ->setOption('rockforms-system', true)
+        ->setHtmlAttribute('no-reset', true)
+        ->setValue(rockforms()->getCSRF());
+    } else {
+      // CSRF === true
+      // this is for forms on procached pages
+      // CSRF will be loaded via ajax on form submit
+      $this->addText("csrf", "CSRF Token")
+        ->setOption('rockforms-system', true);
+    }
     $this->addMarkup("<div hidden>{csrf}</div>");
   }
 
