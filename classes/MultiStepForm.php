@@ -53,7 +53,7 @@ class MultiStepForm extends Wire
       if (!$step->done) return $last;
       $last = $step;
     }
-    return false;
+    return $last;
   }
 
   public function getLastViewable(): Step|false

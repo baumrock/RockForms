@@ -72,8 +72,7 @@ class Step extends WireData
 
     $firstUndone = $this->multiStepForm->getFirstUndone();
     if ($firstUndone && $this->name === $firstUndone->name) return true;
-
-    return false;
+    else return true;
   }
 
   /**
