@@ -145,7 +145,7 @@ class RockForms extends WireData implements Module, ConfigurableModule
 
   public function getFormFromFile($file, $context = null)
   {
-    if (!is_file($file)) throw new WireException("File $file not found");
+    if (!is_file((string)$file)) throw new WireException("File $file not found");
     $name = pathinfo($file)['filename'];
     if ($f = $this->forms->get($name)) return $f;
     require_once $file;

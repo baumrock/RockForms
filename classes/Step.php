@@ -6,6 +6,10 @@ use ProcessWire\WireData;
 
 use function ProcessWire\rockforms;
 
+/**
+ * @method bool clickable()
+ * @method bool viewable()
+ */
 class Step extends WireData
 {
   const sessionName = 'rockforms-step-';
@@ -16,10 +20,10 @@ class Step extends WireData
   public $multiStepForm;
 
   public $done = false;
-
+  public $first = false;
   public $form = false;
-
   public $headline;
+  public $last = false;
   public $name;
   public $num;
   public $url;
@@ -56,9 +60,20 @@ class Step extends WireData
 
   // ##### regular methods #####
 
-  public function clickable(): bool
+  /**
+   * Is this step clickable?
+   * @return bool
+   */
+  public function ___clickable(): bool
   {
-    return $this->viewable() && !$this->active;
+    if ($this->active) return false;
+    if (!$this->viewable()) return false;
+    if ($this->done) return true;
+
+    $firstUndone = $this->multiStepForm->getFirstUndone();
+    if ($firstUndone && $this->name === $firstUndone->name) return true;
+
+    return false;
   }
 
   /**
@@ -99,6 +114,23 @@ class Step extends WireData
     return $this->multiStepForm->steps->getPrev($this);
   }
 
+  public function renderForm()
+  {
+    try {
+      return rockforms()->render($this->form);
+    } catch (\Throwable $th) {
+      return '';
+    }
+  }
+
+  public function resetData(): void
+  {
+    $this->wire->session->set(
+      self::sessionName . $this->name,
+      []
+    );
+  }
+
   /**
    * Set properties and save data to session
    *
@@ -131,9 +163,14 @@ class Step extends WireData
     $this->wire->session->redirect('./');
   }
 
-  public function viewable(): bool
+  public function ___viewable(): bool
   {
-    return true;
+    $lastDone = $this->multiStepForm->getLastDone();
+    // if no step is done only the first is viewable
+    if (!$lastDone) return $this->first;
+    else {
+      return $this->num <= $lastDone->num + 1;
+    }
   }
 
   public function __debugInfo()
@@ -144,6 +181,8 @@ class Step extends WireData
       'form' => $this->form,
       'url' => $this->url,
       'headline' => $this->headline,
+      'first' => $this->first,
+      'last' => $this->last,
       'done' => $this->done,
     ];
   }
