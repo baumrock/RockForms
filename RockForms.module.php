@@ -114,6 +114,15 @@ class RockForms extends WireData implements Module, ConfigurableModule
     ]);
   }
 
+  public function getCSRF(): string
+  {
+    $rand = new WireRandom();
+    $name = $rand->alphanumeric();
+    $token = $rand->alphanumeric();
+    $this->wire->session->set(self::csrfstring . $name, $token);
+    return $name . self::csrfstring . $token;
+  }
+
   public function getEntry($key): Entry|false
   {
     $entry = $this->wire->pages->get([
@@ -136,7 +145,7 @@ class RockForms extends WireData implements Module, ConfigurableModule
 
   public function getFormFromFile($file, $context = null)
   {
-    if (!is_file($file)) throw new WireException("File $file not found");
+    if (!is_file((string)$file)) throw new WireException("File $file not found");
     $name = pathinfo($file)['filename'];
     if ($f = $this->forms->get($name)) return $f;
     require_once $file;
@@ -154,6 +163,7 @@ class RockForms extends WireData implements Module, ConfigurableModule
     $class = "\\RockForms\\$name";
     $formName = $context->formName ?: $name;
     $form = new $class($formName);
+    if (!$form instanceof RockForm) throw new WireException("Invalid Form");
 
     $form->context = $context;
 
@@ -172,7 +182,7 @@ class RockForms extends WireData implements Module, ConfigurableModule
     $form->buildForm();
 
     // add submit delay
-    $form->addSubmitDelay();
+    if ($form::SUBMITDELAY !== false) $form->addSubmitDelay();
 
     $this->forms->set($formName, $form);
 
@@ -412,11 +422,7 @@ class RockForms extends WireData implements Module, ConfigurableModule
   protected function hookCreateCSRF(HookEvent $event)
   {
     if (!$this->wire->config->ajax) return;
-    $rand = new WireRandom();
-    $name = $rand->alphanumeric();
-    $token = $rand->alphanumeric();
-    $this->wire->session->set(self::csrfstring . $name, $token);
-    return $name . self::csrfstring . $token;
+    return $this->getCSRF();
   }
 
   public function hookDoubleSubmit(HookEvent $event)

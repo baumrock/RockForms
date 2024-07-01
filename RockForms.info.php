@@ -11,7 +11,8 @@ $info = [
   'title' => 'RockForms',
   'version' => json_decode(file_get_contents(__DIR__ . "/package.json"))->version,
   'summary' => 'Simple, secure and versatile forms based on NetteForms.',
-  'autoload' => true,
+  // default is 100, but we need to load RockForms earlier for RockCommerce
+  'autoload' => 200,
   'singular' => true,
   'icon' => 'paper-plane-o',
 
