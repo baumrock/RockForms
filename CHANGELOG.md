@@ -1,3 +1,17 @@
+## [1.5.0](https://github.com/baumrock/RockForms/compare/v1.4.0...v1.5.0) (2024-07-01)
+
+
+### Features
+
+* add multistep forms ([d5659bb](https://github.com/baumrock/RockForms/commit/d5659bb43804e3ddef3bd2ae9c5f07a62faf8840))
+* improve csrf + form submission ([6f51fc0](https://github.com/baumrock/RockForms/commit/6f51fc0b4f7d170c0c5cca0cfcf95d39844c5357))
+* improve step navigation ([8d24f8b](https://github.com/baumrock/RockForms/commit/8d24f8b902b752c28d3667f2cf5c5ede568eaa71))
+
+
+### Bug Fixes
+
+* bug if all steps are done ([813f8fb](https://github.com/baumrock/RockForms/commit/813f8fb51fae623c68f8a908fe562970c4ed9c89))
+
 ## [1.4.0](https://github.com/baumrock/RockForms/compare/v1.3.0...v1.4.0) (2024-05-06)
 
 
@@ -25,11 +39,4 @@
 ### Features
 
 * improve security features and docs ([c439129](https://github.com/baumrock/RockForms/commit/c43912949ba90230f2513ad9e5b0955897614ec5))
-
-## [1.1.1](https://github.com/baumrock/RockForms/compare/v1.1.0...v1.1.1) (2024-04-02)
-
-
-### Bug Fixes
-
-* add entities sanitizer on example form ([6f7a76c](https://github.com/baumrock/RockForms/commit/6f7a76cfc44107fa93d21bb7b0e79b3f400ea45f))
 
