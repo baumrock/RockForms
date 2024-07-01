@@ -47,6 +47,7 @@ Each step is in itself a RockForm, so each step has a `processInput()` and a `pr
 ```php
 public function processInput()
 {
+  // find step from reference to MultiStepForm object
   $step = wire()->mySteps->get('name=foo');
   $step->save(['done' => false]);
 }
