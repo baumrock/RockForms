@@ -434,7 +434,8 @@ class RockForms extends WireData implements Module, ConfigurableModule
       $url = $this->wire->input->queryString([$this->successParam => null]);
       if ($url) $url = "?$url";
       $this->wire->session->redirect(
-        $this->wire->input->url() . $url
+        $this->wire->input->url() . $url,
+        false // 302
       );
     }
   }

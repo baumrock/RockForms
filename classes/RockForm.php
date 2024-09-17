@@ -439,7 +439,10 @@ class RockForm extends Form
       $query = $this->wire->input->queryString();
       $url = $this->wire->input->url() . "?$query";
       if ($query) $url .= "&";
-      $session->redirect("{$url}$param={$this->name}");
+      $session->redirect(
+        "{$url}$param={$this->name}",
+        false // 302
+      );
     }
   }
 
@@ -514,7 +517,7 @@ class RockForm extends Form
    */
   public function useHTMX(): void
   {
-    $this->setHtmlAttribute("hx-post", "./");
+    $this->setHtmlAttribute("hx-post", "./?nocache=1");
     $this->setHtmlAttribute("hx-swap", "outerHTML");
     if ($this->wire->config->rockformsPreserveSuccess) {
       $this->setHtmlAttribute("hx-swap", "afterend");
