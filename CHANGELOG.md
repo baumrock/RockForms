@@ -1,3 +1,17 @@
+## [1.6.0](https://github.com/baumrock/RockForms/compare/v1.5.0...v1.6.0) (2024-09-17)
+
+
+### Features
+
+* add form submission logger ([82c6b76](https://github.com/baumrock/RockForms/commit/82c6b7639887aa18e55c76583574a6db8c7c704e))
+
+
+### Bug Fixes
+
+* add missing docs ([8a3f420](https://github.com/baumrock/RockForms/commit/8a3f420834815a19ce652a6b990f68ff8da78e09))
+* forms sometimes not submitting properly with procache ([4f913c2](https://github.com/baumrock/RockForms/commit/4f913c2119ef56dfdec6a24111966c44d3724c08))
+* restore missing releases file ([d93b99f](https://github.com/baumrock/RockForms/commit/d93b99fd21e72e1522ee3fdf8c336b4b464f8425))
+
 ## [1.5.0](https://github.com/baumrock/RockForms/compare/v1.4.0...v1.5.0) (2024-07-01)
 
 
@@ -32,11 +46,4 @@
 ### Bug Fixes
 
 * typos in docs ([4ca5c69](https://github.com/baumrock/RockForms/commit/4ca5c69aec98f4df51397f8cf72d8339818234df))
-
-## [1.2.0](https://github.com/baumrock/RockForms/compare/v1.1.1...v1.2.0) (2024-04-04)
-
-
-### Features
-
-* improve security features and docs ([c439129](https://github.com/baumrock/RockForms/commit/c43912949ba90230f2513ad9e5b0955897614ec5))
 
