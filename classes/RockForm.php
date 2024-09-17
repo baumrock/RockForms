@@ -58,6 +58,11 @@ class RockForm extends Form
       // first we check the form for spam
       $form->validateAntiSpam();
 
+      // log form submissions
+      if (rockforms()->logFormSubmissions) {
+        wire()->log->save('form-submissions', json_encode($form->getValues()));
+      }
+
       // then we trigger processInput so the user can add logic
       // and maybe set isSpam manually (when using external tools)
       $form->processInput();
@@ -72,9 +77,7 @@ class RockForm extends Form
     $this->init();
   }
 
-  public function init()
-  {
-  }
+  public function init() {}
 
   /**
    * Add CSRF protection to this form
@@ -186,9 +189,7 @@ class RockForm extends Form
   /**
    * Should be implemented by Forms
    */
-  public function buildForm()
-  {
-  }
+  public function buildForm() {}
 
   public function className($short = true)
   {
@@ -278,16 +279,12 @@ class RockForm extends Form
   /**
    * Should be implemented by Forms
    */
-  public function processInput()
-  {
-  }
+  public function processInput() {}
 
   /**
    * Should be implemented by Forms
    */
-  public function processSuccess()
-  {
-  }
+  public function processSuccess() {}
 
   /**
    * Renders form.
@@ -442,7 +439,10 @@ class RockForm extends Form
       $query = $this->wire->input->queryString();
       $url = $this->wire->input->url() . "?$query";
       if ($query) $url .= "&";
-      $session->redirect("{$url}$param={$this->name}");
+      $session->redirect(
+        "{$url}$param={$this->name}",
+        false // 302
+      );
     }
   }
 
@@ -517,7 +517,7 @@ class RockForm extends Form
    */
   public function useHTMX(): void
   {
-    $this->setHtmlAttribute("hx-post", "./");
+    $this->setHtmlAttribute("hx-post", "./?nocache=1");
     $this->setHtmlAttribute("hx-swap", "outerHTML");
     if ($this->wire->config->rockformsPreserveSuccess) {
       $this->setHtmlAttribute("hx-swap", "afterend");

@@ -434,7 +434,8 @@ class RockForms extends WireData implements Module, ConfigurableModule
       $url = $this->wire->input->queryString([$this->successParam => null]);
       if ($url) $url = "?$url";
       $this->wire->session->redirect(
-        $this->wire->input->url() . $url
+        $this->wire->input->url() . $url,
+        false // 302
       );
     }
   }
@@ -635,6 +636,7 @@ class RockForms extends WireData implements Module, ConfigurableModule
     $this->configSpam($inputfields);
     $this->configFrontend($inputfields);
     $this->configBackend($inputfields);
+    $this->configDebug($inputfields);
     return $inputfields;
   }
 
@@ -650,6 +652,23 @@ class RockForms extends WireData implements Module, ConfigurableModule
       'name' => 'showDataPage',
       'label' => 'Show Datapage in Pagetree for Superusers',
       'checked' => $this->showDataPage ? 'checked' : '',
+      'columnWidth' => 100,
+    ]);
+  }
+
+  private function configDebug(&$inputfields)
+  {
+    $fs = new InputfieldFieldset();
+    $fs->label = "Debug";
+    $fs->icon = "bug";
+    $inputfields->add($fs);
+
+    $fs->add([
+      'type' => 'checkbox',
+      'name' => 'logFormSubmissions',
+      'label' => 'Log Form Submissions to log "form-submissions"',
+      'notes' => 'All form values will be logged as JSON string. This happens before processInput() and before any spam protection is applied, so it is useful for debugging only.',
+      'checked' => $this->logFormSubmissions ? 'checked' : '',
       'columnWidth' => 100,
     ]);
   }
