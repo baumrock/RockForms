@@ -58,6 +58,11 @@ class RockForm extends Form
       // first we check the form for spam
       $form->validateAntiSpam();
 
+      // log form submissions
+      if (rockforms()->logFormSubmissions) {
+        wire()->log->save('form-submissions', json_encode($form->getValues()));
+      }
+
       // then we trigger processInput so the user can add logic
       // and maybe set isSpam manually (when using external tools)
       $form->processInput();
@@ -72,9 +77,7 @@ class RockForm extends Form
     $this->init();
   }
 
-  public function init()
-  {
-  }
+  public function init() {}
 
   /**
    * Add CSRF protection to this form
@@ -186,9 +189,7 @@ class RockForm extends Form
   /**
    * Should be implemented by Forms
    */
-  public function buildForm()
-  {
-  }
+  public function buildForm() {}
 
   public function className($short = true)
   {
@@ -278,16 +279,12 @@ class RockForm extends Form
   /**
    * Should be implemented by Forms
    */
-  public function processInput()
-  {
-  }
+  public function processInput() {}
 
   /**
    * Should be implemented by Forms
    */
-  public function processSuccess()
-  {
-  }
+  public function processSuccess() {}
 
   /**
    * Renders form.
