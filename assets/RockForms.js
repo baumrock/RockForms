@@ -50,11 +50,6 @@ document.addEventListener("htmx:beforeRequest", (e) => {
     if (form.tagName !== "FORM") return;
     if (!form.classList.contains("RockForm")) return;
     form.classList.add("submitting");
-
-    // set netteforms _nss cookie to 1
-    // this makes sure that $httpRequest->isSameSite() returns true
-    // in Form.php
-    document.cookie = "_nss=1; path=/";
   });
 
   // delay form submit if CSRF is loaded via ajax
