@@ -505,6 +505,7 @@ class RockForm extends Form
     try {
       $this->processSuccess();
     } catch (\Throwable $th) {
+      wire()->log->save('rockforms', $th->getMessage());
       $this->addError($th->getMessage());
     }
   }
