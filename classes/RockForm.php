@@ -238,6 +238,22 @@ class RockForm extends Form
     return $this->getElementPrototype()->id;
   }
 
+  /**
+   * Get submitted values without system fields like honeypot/csrf
+   */
+  public function getNonSystemValues(): WireData
+  {
+    $values = new WireData();
+    $values->setArray($this->getValues('array'));
+    foreach ($this->getFields() as $name => $field) {
+      $remove = false;
+      if ($field->getOption("rockforms-honey")) $remove = true;
+      elseif ($field->getOption("rockforms-system")) $remove = true;
+      if ($remove) $values->remove($name);
+    }
+    return $values;
+  }
+
   public function getSanitizedFilename($file): string
   {
     return $this->wire->sanitizer->fileName($file->getUntrustedName());
@@ -356,7 +372,7 @@ class RockForm extends Form
 
   public function saveEntry($title, $values = null, $saveFiles = true): Entry
   {
-    if (!$values) $values = $this->values()->getArray();
+    if (!$values) $values = $this->getNonSystemValues()->getArray();
 
     // save entry
     $entry = new Entry();
