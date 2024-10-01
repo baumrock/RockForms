@@ -17,41 +17,39 @@ use Nette\Utils\Validators;
 /**
  * Common validators.
  */
-class Validator
+final class Validator
 {
 	use Nette\StaticClass;
 
-	/** @var array */
-	public static $messages = [
-		Controls\CsrfProtection::PROTECTION => 'Your session has expired. Please return to the home page and try again.',
-		Form::EQUAL => 'Please enter %s.',
-		Form::NOT_EQUAL => 'This value should not be %s.',
-		Form::FILLED => 'This field is required.',
-		Form::BLANK => 'This field should be blank.',
-		Form::MIN_LENGTH => 'Please enter at least %d characters.',
-		Form::MAX_LENGTH => 'Please enter no more than %d characters.',
-		Form::LENGTH => 'Please enter a value between %d and %d characters long.',
-		Form::EMAIL => 'Please enter a valid email address.',
+	public static array $messages = [
+		Controls\CsrfProtection::Protection => 'Your session has expired. Please return to the home page and try again.',
+		Form::Equal => 'Please enter %s.',
+		Form::NotEqual => 'This value should not be %s.',
+		Form::Filled => 'This field is required.',
+		Form::Blank => 'This field should be blank.',
+		Form::MinLength => 'Please enter at least %d characters.',
+		Form::MaxLength => 'Please enter no more than %d characters.',
+		Form::Length => 'Please enter a value between %d and %d characters long.',
+		Form::Email => 'Please enter a valid email address.',
 		Form::URL => 'Please enter a valid URL.',
-		Form::INTEGER => 'Please enter a valid integer.',
-		Form::FLOAT => 'Please enter a valid number.',
-		Form::MIN => 'Please enter a value greater than or equal to %d.',
-		Form::MAX => 'Please enter a value less than or equal to %d.',
-		Form::RANGE => 'Please enter a value between %d and %d.',
-		Form::MAX_FILE_SIZE => 'The size of the uploaded file can be up to %d bytes.',
-		Form::MAX_POST_SIZE => 'The uploaded data exceeds the limit of %d bytes.',
-		Form::MIME_TYPE => 'The uploaded file is not in the expected format.',
-		Form::IMAGE => 'The uploaded file must be image in format JPEG, GIF, PNG or WebP.',
-		Controls\SelectBox::VALID => 'Please select a valid option.',
-		Controls\UploadControl::VALID => 'An error occurred during file upload.',
+		Form::Integer => 'Please enter a valid integer.',
+		Form::Float => 'Please enter a valid number.',
+		Form::Min => 'Please enter a value greater than or equal to %d.',
+		Form::Max => 'Please enter a value less than or equal to %d.',
+		Form::Range => 'Please enter a value between %d and %d.',
+		Form::MaxFileSize => 'The size of the uploaded file can be up to %d bytes.',
+		Form::MaxPostSize => 'The uploaded data exceeds the limit of %d bytes.',
+		Form::MimeType => 'The uploaded file is not in the expected format.',
+		Form::Image => 'The uploaded file must be image in format JPEG, GIF, PNG or WebP.',
+		Controls\SelectBox::Valid => 'Please select a valid option.',
+		Controls\UploadControl::Valid => 'An error occurred during file upload.',
 	];
 
 
 	/**
-	 * @return string|Nette\HtmlStringable
 	 * @internal
 	 */
-	public static function formatMessage(Rule $rule, bool $withValue = true)
+	public static function formatMessage(Rule $rule, bool $withValue = true): string|Nette\HtmlStringable
 	{
 		$message = $rule->message;
 		if ($message instanceof Nette\HtmlStringable) {
@@ -64,7 +62,7 @@ class Validator
 			trigger_error(
 				"Missing validation message for control '{$rule->control->getName()}'"
 				. (is_string($rule->validator) ? " (validator '{$rule->validator}')." : '.'),
-				E_USER_WARNING
+				E_USER_WARNING,
 			);
 		}
 
@@ -92,9 +90,16 @@ class Validator
 				default:
 					$args = is_array($rule->arg) ? $rule->arg : [$rule->arg];
 					$i = (int) $m[1] ? (int) $m[1] - 1 : $i + 1;
-					return isset($args[$i])
-						? ($args[$i] instanceof Control ? ($withValue ? $args[$i]->getValue() : "%$i") : $args[$i])
-						: '';
+					$arg = $args[$i] ?? null;
+					if ($arg === null) {
+						return '';
+					} elseif ($arg instanceof Control) {
+						return $withValue ? $args[$i]->getValue() : "%$i";
+					} elseif ($rule->control instanceof Controls\DateTimeControl) {
+						return $rule->control->formatLocaleText($arg);
+					} else {
+						return $arg;
+					}
 			}
 		}, $message);
 		return $message;
@@ -115,6 +120,10 @@ class Validator
 
 		foreach ($values as $val) {
 			foreach ($args as $item) {
+				if ($item instanceof \BackedEnum) {
+					$item = $item->value;
+				}
+
 				if ((string) $val === (string) $item) {
 					continue 2;
 				}
@@ -177,9 +186,10 @@ class Validator
 	 */
 	public static function validateRange(Control $control, array $range): bool
 	{
-		$range = array_map(function ($v) {
-			return $v === '' ? null : $v;
-		}, $range);
+		if ($control instanceof Controls\DateTimeControl) {
+			return $control->validateMinMax($range[0] ?? null, $range[1] ?? null);
+		}
+		$range = array_map(fn($v) => $v === '' ? null : $v, $range);
 		return Validators::isInRange($control->getValue(), $range);
 	}
 
@@ -204,9 +214,8 @@ class Validator
 
 	/**
 	 * Count/length validator. Range is array, min and max length pair.
-	 * @param  array|int  $range
 	 */
-	public static function validateLength(Control $control, $range): bool
+	public static function validateLength(Control $control, array|int $range): bool
 	{
 		if (!is_array($range)) {
 			$range = [$range, $range];
@@ -293,7 +302,7 @@ class Validator
 
 	public static function validatePatternCaseInsensitive(Control $control, string $pattern): bool
 	{
-		return self::validatePattern($control, $pattern, true);
+		return self::validatePattern($control, $pattern, caseInsensitive: true);
 	}
 
 
@@ -363,11 +372,11 @@ class Validator
 	 * Has file specified mime type?
 	 * @param  string|string[]  $mimeType
 	 */
-	public static function validateMimeType(Controls\UploadControl $control, $mimeType): bool
+	public static function validateMimeType(Controls\UploadControl $control, string|array $mimeType): bool
 	{
 		$mimeTypes = is_array($mimeType) ? $mimeType : explode(',', $mimeType);
 		foreach (static::toArray($control->getValue()) as $file) {
-			$type = strtolower($file->getContentType());
+			$type = strtolower($file->getContentType() ?? '');
 			if (!in_array($type, $mimeTypes, true) && !in_array(preg_replace('#/.*#', '/*', $type), $mimeTypes, true)) {
 				return false;
 			}

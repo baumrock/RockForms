@@ -75,6 +75,7 @@ document.addEventListener("htmx:beforeRequest", (e) => {
     document.addEventListener(event, (e) => {
       let form = e.target.closest("form");
       if (!form) return;
+
       let input = form.querySelector('input[name="csrf"]');
       if (!input) return;
       if (input.value) return;

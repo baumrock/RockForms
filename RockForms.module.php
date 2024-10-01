@@ -5,6 +5,7 @@ namespace ProcessWire;
 use Nette\Forms\Control;
 use Nette\Forms\FormRenderer;
 use Nette\Forms\Validator;
+use Nette\Http\Helpers;
 use RockForms\Entries;
 use RockForms\Entry;
 use RockForms\Renderer\RockFormsRenderer;
@@ -52,6 +53,11 @@ class RockForms extends WireData implements Module, ConfigurableModule
 
   public function init()
   {
+
+    // set netteforms _nss cookie to 1 to make sure that
+    // $httpRequest->isSameSite() returns true in Form.php
+    wire()->input->cookie->set(Helpers::StrictCookieName, '1');
+
     require_once __DIR__ . "/RockFormsPage.php";
     $this->wire->classLoader->addNamespace("RockForms", __DIR__ . "/classes");
     $this->wire->classLoader->addNamespace("RockForms", __DIR__ . "/PageClasses");
