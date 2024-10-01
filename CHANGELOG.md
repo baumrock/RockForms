@@ -1,3 +1,11 @@
+## [1.6.1](https://github.com/baumrock/RockForms/compare/v1.6.0...v1.6.1) (2024-10-01)
+
+
+### Bug Fixes
+
+* revert method getNonSystemValues() that has accidentally been removed ([fc45f71](https://github.com/baumrock/RockForms/commit/fc45f718ca463550962d1d606f038d0204e96fa5))
+* set _nss cookie to make sure htmx submissions work properly ([8465c6c](https://github.com/baumrock/RockForms/commit/8465c6c309ff184d9c1ff9f842c2b5f496fe2ecd))
+
 ## [1.6.0](https://github.com/baumrock/RockForms/compare/v1.5.0...v1.6.0) (2024-09-17)
 
 
@@ -39,11 +47,4 @@
 ### Features
 
 * add support for file uploads ([ed358a9](https://github.com/baumrock/RockForms/commit/ed358a98c355c7363c3a61479ac84e8a4ed8bc3e))
-
-## [1.2.1](https://github.com/baumrock/RockForms/compare/v1.2.0...v1.2.1) (2024-04-04)
-
-
-### Bug Fixes
-
-* typos in docs ([4ca5c69](https://github.com/baumrock/RockForms/commit/4ca5c69aec98f4df51397f8cf72d8339818234df))
 
