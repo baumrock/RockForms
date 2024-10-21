@@ -56,9 +56,12 @@ class RockFormsRenderer extends DefaultFormRenderer
   public function render(Form $form, ?string $mode = null): string
   {
     $forms = rockforms();
-    $form->getElementPrototype()
-      ->addClass('RockForm')
-      ->addClass($forms->noHtmxModal ?: 'data-rockforms-loader');
+    $el = $form->getElementPrototype();
+    /** @var \Nette\Utils\Html $el */
+    $loader = $el->getAttribute('rockloader');
+    $el->addClass('RockForm')
+      ->addClass($forms->noHtmxModal ? '' : 'data-rockforms-loader')
+      ->setAttribute('rockloader', $loader ?: 'dots');
 
     return
       $form->prependMarkup .

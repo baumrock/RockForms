@@ -13,7 +13,18 @@ var RockForms = true;
 document.addEventListener("htmx:beforeRequest", (e) => {
   if (typeof Nette == "undefined") return;
   if (e.target.tagName !== "FORM") return;
-  if (!Nette.validateForm(e.target)) e.preventDefault();
+  if (!Nette.validateForm(e.target)) {
+    e.preventDefault();
+    return;
+  }
+
+  // show rockloader while submitting
+  const loader = e.target.getAttribute("rockloader");
+  document.body.setAttribute("rockloader", loader);
+});
+// hide rockloader
+document.addEventListener("htmx:afterRequest", (e) => {
+  document.body.removeAttribute("rockloader");
 });
 
 // load htmx on form interaction
@@ -50,6 +61,10 @@ document.addEventListener("htmx:beforeRequest", (e) => {
     if (form.tagName !== "FORM") return;
     if (!form.classList.contains("RockForm")) return;
     form.classList.add("submitting");
+
+    // show rockloader while submitting
+    const loader = form.getAttribute("rockloader");
+    document.body.setAttribute("rockloader", loader);
   });
 
   // delay form submit if CSRF is loaded via ajax
