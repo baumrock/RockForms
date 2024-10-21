@@ -13,9 +13,12 @@ var RockForms = true;
 document.addEventListener("htmx:beforeRequest", (e) => {
   if (typeof Nette == "undefined") return;
   if (e.target.tagName !== "FORM") return;
-  if (!Nette.validateForm(e.target)) e.preventDefault();
+  if (!Nette.validateForm(e.target)) {
+    e.preventDefault();
+    return;
+  }
 
-  // show rockloader
+  // show rockloader while submitting
   const loader = e.target.getAttribute("rockloader");
   document.body.setAttribute("rockloader", loader);
 });
