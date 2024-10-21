@@ -99,8 +99,11 @@ class RockForms extends WireData implements Module, ConfigurableModule
       $this->addHookBefore('ProcessPageListRender::getNumChildren', $this, "hookNumChildren");
     }
 
-    // add rockloader
-    rockloaders()->add('dots');
+    // add rockloader if the module is installed
+    // we don't want rockloaders to be a requirement for this module
+    if (wire()->modules->isInstalled('RockLoaders')) {
+      rockloaders()->add('dots');
+    }
   }
 
   public function checkbox($val, $tooltip = false)
