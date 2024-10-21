@@ -1,3 +1,22 @@
+## [2.0.0](https://github.com/baumrock/RockForms/compare/v1.6.1...v2.0.0) (2024-10-21)
+
+
+### ⚠ BREAKING CHANGES
+
+* refactor to use RockLoaders for animations
+
+### Features
+
+* refactor to use RockLoaders for animations ([5c1c335](https://github.com/baumrock/RockForms/commit/5c1c335fc8a7f60684d1098a547b7adee207cfe2))
+
+
+### Bug Fixes
+
+* add missing return statement for rockloader ([d265e86](https://github.com/baumrock/RockForms/commit/d265e86d72f02a37797c0d5903984940ad4677b0))
+* also show loaders on regular form submit ([13f5bf8](https://github.com/baumrock/RockForms/commit/13f5bf84802f968f8d117f28634c70a2740fe985))
+* remove RockLoaders requirement ([139c1c9](https://github.com/baumrock/RockForms/commit/139c1c9df1e1e1af6fee16c8233c42023bf098f2))
+* throw exception when debug mode ([9bde8ae](https://github.com/baumrock/RockForms/commit/9bde8ae226ad4a00ba0931076447d1fcb6c28418))
+
 ## [1.6.1](https://github.com/baumrock/RockForms/compare/v1.6.0...v1.6.1) (2024-10-01)
 
 
@@ -40,11 +59,4 @@
 ### Features
 
 * improve error messages ([838baef](https://github.com/baumrock/RockForms/commit/838baef282bef9dd080cfc38ff7e1d34460996f7))
-
-## [1.3.0](https://github.com/baumrock/RockForms/compare/v1.2.1...v1.3.0) (2024-05-06)
-
-
-### Features
-
-* add support for file uploads ([ed358a9](https://github.com/baumrock/RockForms/commit/ed358a98c355c7363c3a61479ac84e8a4ed8bc3e))
 
