@@ -61,6 +61,10 @@ document.addEventListener("htmx:afterRequest", (e) => {
     if (form.tagName !== "FORM") return;
     if (!form.classList.contains("RockForm")) return;
     form.classList.add("submitting");
+
+    // show rockloader while submitting
+    const loader = form.getAttribute("rockloader");
+    document.body.setAttribute("rockloader", loader);
   });
 
   // delay form submit if CSRF is loaded via ajax

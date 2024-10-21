@@ -1,6 +1,6 @@
 # RockLoaders
 
-By default, RockForms will use RockLoaders to show a loader animation while the form is sending data via HTMX. The default loader is "dots", which grays out the background of your page and shows white animated dots. This animation is neutral and should work well in most cases.
+By default, RockForms will use RockLoaders to show a loader animation when the form is submitted. The default loader is "dots", which grays out the background of your page and shows white animated dots. This animation is neutral and should work well in most cases.
 
 ## Adding custom loaders
 
