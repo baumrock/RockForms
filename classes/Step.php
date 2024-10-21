@@ -3,8 +3,10 @@
 namespace RockForms;
 
 use ProcessWire\WireData;
+use ProcessWire\WireException;
 
 use function ProcessWire\rockforms;
+use function ProcessWire\wire;
 
 /**
  * @method bool clickable()
@@ -118,6 +120,8 @@ class Step extends WireData
     try {
       return rockforms()->render($this->form);
     } catch (\Throwable $th) {
+      if (wire()->config->debug) throw new WireException($th->getMessage());
+      else $this->log($th->getMessage());
       return '';
     }
   }
