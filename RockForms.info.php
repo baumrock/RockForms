@@ -18,9 +18,11 @@ $info = [
 
   // PHP8 for named arguments
   // rockmigrations 4.3.0 for renderTable() method
+  // RockLoaders 1.1.0 for add() short syntax
   'requires' => [
     'PHP>=8.0',
     'RockMigrations>=4.3.0',
+    'RockLoaders>=1.1.0',
   ],
 
   'installs' => [

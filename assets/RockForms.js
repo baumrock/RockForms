@@ -14,6 +14,14 @@ document.addEventListener("htmx:beforeRequest", (e) => {
   if (typeof Nette == "undefined") return;
   if (e.target.tagName !== "FORM") return;
   if (!Nette.validateForm(e.target)) e.preventDefault();
+
+  // show rockloader
+  const loader = e.target.getAttribute("rockloader");
+  document.body.setAttribute("rockloader", loader);
+});
+// hide rockloader
+document.addEventListener("htmx:afterRequest", (e) => {
+  document.body.removeAttribute("rockloader");
 });
 
 // load htmx on form interaction
