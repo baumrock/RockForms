@@ -18,6 +18,10 @@ In our example we set `Newsletter` for the form name and get a list like this:
 
 <img src=https://i.imgur.com/vnTUidZ.png class=blur height=300>
 
+Once you created that list, you can save it as bookmark and then access the list from the PW backend:
+
+<img src=https://i.imgur.com/panNobZ.png class=blur height=200>
+
 ## Custom List, Option 2
 
 For even better lists with instant filtering and sorting you can use the [RockGrid](https://www.baumrock.com/RockGrid) module. Imagination is the only limit.
