@@ -18,6 +18,7 @@ class StepsArray extends WireArray
         : $step->getData();
     }
     if ($stepname) return $data[$stepname];
-    return $data;
+    if ($returnArrays) return $data;
+    return (new WireData())->setArray($data);
   }
 }

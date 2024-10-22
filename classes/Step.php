@@ -122,16 +122,20 @@ class Step extends WireData
     } catch (\Throwable $th) {
       if (wire()->config->debug) throw new WireException($th->getMessage());
       else $this->log($th->getMessage());
-      return '';
+      return 'Error rendering form, please contact support.';
     }
   }
 
-  public function resetData(): void
+  public function resetData($property = null): self
   {
+    $data = $this->getData();
+    if ($property) $data->remove($property);
+    else $data->setArray([]);
     $this->wire->session->set(
       self::sessionName . $this->name,
-      []
+      $data->getArray()
     );
+    return $this;
   }
 
   /**

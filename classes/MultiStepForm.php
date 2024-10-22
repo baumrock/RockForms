@@ -3,7 +3,6 @@
 namespace RockForms;
 
 use ProcessWire\Wire;
-use ProcessWire\WireException;
 
 class MultiStepForm extends Wire
 {
