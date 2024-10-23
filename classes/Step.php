@@ -3,7 +3,6 @@
 namespace RockForms;
 
 use ProcessWire\WireData;
-use ProcessWire\WireException;
 
 use function ProcessWire\rockforms;
 use function ProcessWire\wire;
@@ -117,11 +116,11 @@ class Step extends WireData
 
   public function renderForm()
   {
+    if (wire()->config->debug) return rockforms()->render($this->form);
     try {
       return rockforms()->render($this->form);
     } catch (\Throwable $th) {
-      if (wire()->config->debug) throw new WireException($th->getMessage());
-      else $this->log($th->getMessage());
+      $this->log($th->getMessage());
       return 'Error rendering form, please contact support.';
     }
   }
