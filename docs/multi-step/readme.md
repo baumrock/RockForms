@@ -61,3 +61,22 @@ public function processSuccess()
     ->toNext();
 }
 ```
+
+## Getting data
+
+You can get the data of all steps or of a single step:
+
+```php
+$data = $form->steps()->getData();
+$data = $form->steps()->getData('my-step');
+```
+
+The returned data is an array of `WireData` objects or just a single WireData object if you specify the name of a single step:
+
+<img src=https://i.imgur.com/r5JZH15.png class=blur height=350>
+
+You can also add a `returnArrays` option to get an array of arrays:
+
+```php
+$data = $form->steps()->getData(null, true);
+```

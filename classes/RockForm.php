@@ -516,13 +516,18 @@ class RockForm extends Form
     if ($this->isSpam) return;
     if ($this->hasErrors()) return;
 
+    if (wire()->config->debug) {
+      $this->processSuccess();
+      return;
+    }
+
     // try to execute processSuccess and catch exceptions
     // exceptions will be shown as error message to the user
     try {
       $this->processSuccess();
     } catch (\Throwable $th) {
       wire()->log->save('rockforms', $th->getMessage());
-      $this->addError($th->getMessage());
+      $this->addError("There was an error processing your request. Error has been logged. Please try again.");
     }
   }
 
