@@ -1,3 +1,16 @@
+## [2.1.0](https://github.com/baumrock/RockForms/compare/v2.0.0...v2.1.0) (2024-11-03)
+
+
+### Features
+
+* add getData() method for StepsArray ([25af82f](https://github.com/baumrock/RockForms/commit/25af82f310cca863ebe92cd15c576986f291cb5f))
+* improve multi step form ([2fcd84b](https://github.com/baumrock/RockForms/commit/2fcd84b85433163bf107b622c7a6bf64e16aea54))
+
+
+### Bug Fixes
+
+* better exception in renderForm ([8866ecc](https://github.com/baumrock/RockForms/commit/8866ecc524097a501c061c4573c4b07be44f1af1))
+
 ## [2.0.0](https://github.com/baumrock/RockForms/compare/v1.6.1...v2.0.0) (2024-10-21)
 
 
@@ -52,11 +65,4 @@
 ### Bug Fixes
 
 * bug if all steps are done ([813f8fb](https://github.com/baumrock/RockForms/commit/813f8fb51fae623c68f8a908fe562970c4ed9c89))
-
-## [1.4.0](https://github.com/baumrock/RockForms/compare/v1.3.0...v1.4.0) (2024-05-06)
-
-
-### Features
-
-* improve error messages ([838baef](https://github.com/baumrock/RockForms/commit/838baef282bef9dd080cfc38ff7e1d34460996f7))
 
