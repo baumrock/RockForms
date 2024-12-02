@@ -1,3 +1,10 @@
+## [2.1.1](https://github.com/baumrock/RockForms/compare/v2.1.0...v2.1.1) (2024-12-02)
+
+
+### Bug Fixes
+
+* make sure to return wiredata in steps getData ([176962a](https://github.com/baumrock/RockForms/commit/176962a14bb067c85b33d890eef74ab532d4e4ea))
+
 ## [2.1.0](https://github.com/baumrock/RockForms/compare/v2.0.0...v2.1.0) (2024-11-03)
 
 
@@ -51,18 +58,4 @@
 * add missing docs ([8a3f420](https://github.com/baumrock/RockForms/commit/8a3f420834815a19ce652a6b990f68ff8da78e09))
 * forms sometimes not submitting properly with procache ([4f913c2](https://github.com/baumrock/RockForms/commit/4f913c2119ef56dfdec6a24111966c44d3724c08))
 * restore missing releases file ([d93b99f](https://github.com/baumrock/RockForms/commit/d93b99fd21e72e1522ee3fdf8c336b4b464f8425))
-
-## [1.5.0](https://github.com/baumrock/RockForms/compare/v1.4.0...v1.5.0) (2024-07-01)
-
-
-### Features
-
-* add multistep forms ([d5659bb](https://github.com/baumrock/RockForms/commit/d5659bb43804e3ddef3bd2ae9c5f07a62faf8840))
-* improve csrf + form submission ([6f51fc0](https://github.com/baumrock/RockForms/commit/6f51fc0b4f7d170c0c5cca0cfcf95d39844c5357))
-* improve step navigation ([8d24f8b](https://github.com/baumrock/RockForms/commit/8d24f8b902b752c28d3667f2cf5c5ede568eaa71))
-
-
-### Bug Fixes
-
-* bug if all steps are done ([813f8fb](https://github.com/baumrock/RockForms/commit/813f8fb51fae623c68f8a908fe562970c4ed9c89))
 
