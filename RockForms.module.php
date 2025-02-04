@@ -80,7 +80,9 @@ class RockForms extends WireData implements Module, ConfigurableModule
     $rm->watch($this);
 
     // create minified assets
-    $rm->minify(__DIR__ . "/assets");
+    if (wire()->config->rockdevtools) {
+      rockdevtools()->assets()->minify(__DIR__ . '/src', __DIR__ . '/dst');
+    }
 
     // sanitize success parameter
     $this->successParam = $this->wire->sanitizer->pageName($this->successParam);
@@ -296,7 +298,7 @@ class RockForms extends WireData implements Module, ConfigurableModule
       if ($opt = $this->LiveFormOptions) {
         $assets .= "<script>LiveFormOptions = " . json_encode($opt) . "</script>";
       }
-      $live = $this->wire->config->urls->root . "site/modules/RockForms/lib/live-form-validation.min.js";
+      $live = $this->wire->config->urls->root . "site/modules/RockForms/dst/live-form-validation.min.js";
       $assets .= "<script src=$live defer></script>";
     }
 
@@ -404,20 +406,6 @@ class RockForms extends WireData implements Module, ConfigurableModule
    */
   public function render(string $name, $context = null)
   {
-    // if rockfrontend is installed we automatically add RockFrontend.js
-    if ($this->wire->modules->isInstalled("RockFrontend")) {
-      if (!$this->wire->config->dontLoadRockFormsJs) {
-        try {
-          rockfrontend()->scripts()->add(
-            __DIR__ . "/assets/RockForms.min.js",
-            "defer"
-          );
-        } catch (\Throwable $th) {
-          throw new WireException("Please upgrade RockFrontend: " . $th->getMessage());
-        }
-      }
-    }
-
     if (!$name) return false;
     if ($markup = $this->renderedMarkup->get($name)) return $markup;
     if (is_file($name)) {
@@ -497,7 +485,7 @@ class RockForms extends WireData implements Module, ConfigurableModule
 
   public function scriptTag(): string
   {
-    $file = $this->wire->config->urls($this) . "assets/RockForms.min.js";
+    $file = $this->wire->config->urls($this) . "dst/RockForms.min.js";
     $url = $this->wire->config->versionUrl($file);
     return "<script src='$url' defer></script>";
   }
