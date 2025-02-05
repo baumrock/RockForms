@@ -10,6 +10,7 @@ use RockForms\Entries;
 use RockForms\Entry;
 use RockForms\Renderer\RockFormsRenderer;
 use RockForms\RockForm;
+use RockForms\RockMigrationsConstants;
 use RockForms\Root;
 
 /**
@@ -29,6 +30,8 @@ require_once __DIR__ . "/vendor/autoload.php";
 
 class RockForms extends WireData implements Module, ConfigurableModule
 {
+  use RockMigrationsConstants;
+
   const csrfstring = "rockforms-csrf";
 
   public $confirmParam = "forms-confirm";
@@ -94,6 +97,7 @@ class RockForms extends WireData implements Module, ConfigurableModule
     wire()->addHookAfter("Page::render", $this, "hookAddJsWarning");
     wire()->addHook("/" . $this->confirmParam . "/{key}/", $this, "handleConfirm");
     wire()->addHook("/rockforms-csrf/", $this, "hookCreateCSRF");
+    wire()->addHookAfter('InputfieldText::render', $this, 'hookFormSelectField');
 
     // hide rootpage from tree
     if (!$this->showDataPage) {
@@ -106,6 +110,16 @@ class RockForms extends WireData implements Module, ConfigurableModule
     if (wire()->modules->isInstalled('RockLoaders')) {
       rockloaders()->add('dots');
     }
+  }
+
+  // ### regular methods ###
+
+  /**
+   * Get forms that are listed in the <select> field to select a form
+   */
+  public function ___getSelectableForms(HookEvent $event): WireData
+  {
+    return $this->getForms();
   }
 
   public function checkbox($val, $tooltip = false)
@@ -358,6 +372,23 @@ class RockForms extends WireData implements Module, ConfigurableModule
         false // 302
       );
     }
+  }
+
+  /**
+   * Turn a regular text field into a <select> field to select a form
+   */
+  protected function hookFormSelectField(HookEvent $event): void
+  {
+    $f = $event->object;
+    if (!str_starts_with($f->name, 'rockforms_form')) return;
+    $forms = $this->getSelectableForms($event);
+    $options = '<option></option>';
+    foreach ($forms as $name => $form) {
+      $selected = $name === $f->value ? ' selected' : '';
+      $options .= "<option value='$name'$selected>$name</option>";
+    }
+    $markup = "<select name='{$f->name}'>$options</select>";
+    $event->return = $markup;
   }
 
   /**
