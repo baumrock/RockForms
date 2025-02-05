@@ -48,6 +48,8 @@ class RockForm extends Form
     parent::__construct($name);
     $this->wire = $this->wire();
     $this->setRockFormsRenderer('RockFormsRenderer');
+    $this->setHtmlAttribute('data-rooturl', wire()->config->urls->root);
+
     // attach render hook that tells rockforms that this form
     // has been rendered (necessery for redirects)
     $this->onRender[] = function (RockForm $form) {

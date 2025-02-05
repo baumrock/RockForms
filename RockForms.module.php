@@ -10,6 +10,7 @@ use RockForms\Entries;
 use RockForms\Entry;
 use RockForms\Renderer\RockFormsRenderer;
 use RockForms\RockForm;
+use RockForms\RockMigrationsConstants;
 use RockForms\Root;
 
 /**
@@ -29,6 +30,8 @@ require_once __DIR__ . "/vendor/autoload.php";
 
 class RockForms extends WireData implements Module, ConfigurableModule
 {
+  use RockMigrationsConstants;
+
   const csrfstring = "rockforms-csrf";
 
   public $confirmParam = "forms-confirm";
@@ -80,7 +83,9 @@ class RockForms extends WireData implements Module, ConfigurableModule
     $rm->watch($this);
 
     // create minified assets
-    $rm->minify(__DIR__ . "/assets");
+    if (wire()->config->rockdevtools) {
+      rockdevtools()->assets()->minify(__DIR__ . '/src', __DIR__ . '/dst');
+    }
 
     // sanitize success parameter
     $this->successParam = $this->wire->sanitizer->pageName($this->successParam);
@@ -92,6 +97,7 @@ class RockForms extends WireData implements Module, ConfigurableModule
     wire()->addHookAfter("Page::render", $this, "hookAddJsWarning");
     wire()->addHook("/" . $this->confirmParam . "/{key}/", $this, "handleConfirm");
     wire()->addHook("/rockforms-csrf/", $this, "hookCreateCSRF");
+    wire()->addHookAfter('InputfieldText::render', $this, 'hookFormSelectField');
 
     // hide rootpage from tree
     if (!$this->showDataPage) {
@@ -104,6 +110,16 @@ class RockForms extends WireData implements Module, ConfigurableModule
     if (wire()->modules->isInstalled('RockLoaders')) {
       rockloaders()->add('dots');
     }
+  }
+
+  // ### regular methods ###
+
+  /**
+   * Get forms that are listed in the <select> field to select a form
+   */
+  public function ___getSelectableForms(HookEvent $event): WireData
+  {
+    return $this->getForms();
   }
 
   public function checkbox($val, $tooltip = false)
@@ -296,7 +312,7 @@ class RockForms extends WireData implements Module, ConfigurableModule
       if ($opt = $this->LiveFormOptions) {
         $assets .= "<script>LiveFormOptions = " . json_encode($opt) . "</script>";
       }
-      $live = $this->wire->config->urls->root . "site/modules/RockForms/lib/live-form-validation.min.js";
+      $live = $this->wire->config->urls->root . "site/modules/RockForms/dst/live-form-validation.min.js";
       $assets .= "<script src=$live defer></script>";
     }
 
@@ -359,6 +375,23 @@ class RockForms extends WireData implements Module, ConfigurableModule
   }
 
   /**
+   * Turn a regular text field into a <select> field to select a form
+   */
+  protected function hookFormSelectField(HookEvent $event): void
+  {
+    $f = $event->object;
+    if (!str_starts_with($f->name, 'rockforms_form')) return;
+    $forms = $this->getSelectableForms($event);
+    $options = '<option></option>';
+    foreach ($forms as $name => $form) {
+      $selected = $name === $f->value ? ' selected' : '';
+      $options .= "<option value='$name'$selected>$name</option>";
+    }
+    $markup = "<select name='{$f->name}'>$options</select>";
+    $event->return = $markup;
+  }
+
+  /**
    * Hook num children when rootpage was removed
    */
   public function hookNumChildren(HookEvent $event)
@@ -404,20 +437,6 @@ class RockForms extends WireData implements Module, ConfigurableModule
    */
   public function render(string $name, $context = null)
   {
-    // if rockfrontend is installed we automatically add RockFrontend.js
-    if ($this->wire->modules->isInstalled("RockFrontend")) {
-      if (!$this->wire->config->dontLoadRockFormsJs) {
-        try {
-          rockfrontend()->scripts()->add(
-            __DIR__ . "/assets/RockForms.min.js",
-            "defer"
-          );
-        } catch (\Throwable $th) {
-          throw new WireException("Please upgrade RockFrontend: " . $th->getMessage());
-        }
-      }
-    }
-
     if (!$name) return false;
     if ($markup = $this->renderedMarkup->get($name)) return $markup;
     if (is_file($name)) {
@@ -497,7 +516,7 @@ class RockForms extends WireData implements Module, ConfigurableModule
 
   public function scriptTag(): string
   {
-    $file = $this->wire->config->urls($this) . "assets/RockForms.min.js";
+    $file = $this->wire->config->urls($this) . "dst/RockForms.min.js";
     $url = $this->wire->config->versionUrl($file);
     return "<script src='$url' defer></script>";
   }

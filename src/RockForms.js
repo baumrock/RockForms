@@ -39,11 +39,9 @@ document.addEventListener("htmx:afterRequest", (e) => {
       // create script tag
       let script = document.createElement("script");
 
-      // if pw is installed in a subfolder you need to add this to your frontend:
-      // <script>htmxAssetUrl = "/subfolder/site/modules/RockForms...</script>"
-      if (typeof htmxAssetUrl == "undefined") {
-        script.src = "/site/modules/RockForms/lib/htmx.min.js";
-      } else script.src = htmxAssetUrl;
+      // get data-rooturl from <form> element
+      const rootUrl = e.target.closest("form").getAttribute("data-rooturl");
+      script.src = rootUrl + "site/modules/RockForms/dst/htmx.min.js";
 
       // add script tag to head
       document.head.appendChild(script);
@@ -100,7 +98,10 @@ document.addEventListener("htmx:afterRequest", (e) => {
       form.classList.add("csrf-loaded");
 
       // reset the value and load a new token
-      fetch("/rockforms-csrf/", {
+
+      // get data-rooturl from <form> element
+      const rootUrl = e.target.closest("form").getAttribute("data-rooturl");
+      fetch(rootUrl + "rockforms-csrf/", {
         headers: {
           "X-Requested-With": "XMLHttpRequest",
         },

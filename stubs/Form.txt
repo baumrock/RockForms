@@ -32,10 +32,12 @@ class {name} extends RockForm
   {
     if ($this->isSpam) {
       // ...
+      return;
     }
 
     if ($this->hasErrors()) {
       // ...
+      return;
     }
 
     // get values without system fields (csrf, honeypot)
