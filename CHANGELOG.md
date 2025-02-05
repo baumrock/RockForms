@@ -1,3 +1,15 @@
+## [3.0.0](https://github.com/baumrock/RockForms/compare/v2.1.1...v3.0.0) (2025-02-05)
+
+
+### ⚠ BREAKING CHANGES
+
+* refactoring & cleanup to use RockDevTools
+
+### Features
+
+* add field to select a form ([8645bf8](https://github.com/baumrock/RockForms/commit/8645bf870ae622d98bab7d0ba4dd4a34c8e7e943))
+* refactoring & cleanup to use RockDevTools ([f649098](https://github.com/baumrock/RockForms/commit/f649098b97f3c54a0bf24bba68b3b7a27aa4763a))
+
 ## [2.1.1](https://github.com/baumrock/RockForms/compare/v2.1.0...v2.1.1) (2024-12-02)
 
 
@@ -44,18 +56,4 @@
 
 * revert method getNonSystemValues() that has accidentally been removed ([fc45f71](https://github.com/baumrock/RockForms/commit/fc45f718ca463550962d1d606f038d0204e96fa5))
 * set _nss cookie to make sure htmx submissions work properly ([8465c6c](https://github.com/baumrock/RockForms/commit/8465c6c309ff184d9c1ff9f842c2b5f496fe2ecd))
-
-## [1.6.0](https://github.com/baumrock/RockForms/compare/v1.5.0...v1.6.0) (2024-09-17)
-
-
-### Features
-
-* add form submission logger ([82c6b76](https://github.com/baumrock/RockForms/commit/82c6b7639887aa18e55c76583574a6db8c7c704e))
-
-
-### Bug Fixes
-
-* add missing docs ([8a3f420](https://github.com/baumrock/RockForms/commit/8a3f420834815a19ce652a6b990f68ff8da78e09))
-* forms sometimes not submitting properly with procache ([4f913c2](https://github.com/baumrock/RockForms/commit/4f913c2119ef56dfdec6a24111966c44d3724c08))
-* restore missing releases file ([d93b99f](https://github.com/baumrock/RockForms/commit/d93b99fd21e72e1522ee3fdf8c336b4b464f8425))
 
