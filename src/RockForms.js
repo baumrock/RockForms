@@ -40,7 +40,9 @@ document.addEventListener("htmx:afterRequest", (e) => {
       let script = document.createElement("script");
 
       // get data-rooturl from <form> element
-      const rootUrl = e.target.closest("form").getAttribute("data-rooturl");
+      const form = e.target.closest("form");
+      if (!form) return;
+      const rootUrl = form.getAttribute("data-rooturl");
       script.src = rootUrl + "site/modules/RockForms/dst/htmx.min.js";
 
       // add script tag to head
