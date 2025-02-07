@@ -1,3 +1,10 @@
+## [3.0.1](https://github.com/baumrock/RockForms/compare/v3.0.0...v3.0.1) (2025-02-07)
+
+
+### Bug Fixes
+
+* add early exit if not <form> element ([d0b0fb2](https://github.com/baumrock/RockForms/commit/d0b0fb2aad78f6a725bcf1ee1ee3f9fae5aa2880))
+
 ## [3.0.0](https://github.com/baumrock/RockForms/compare/v2.1.1...v3.0.0) (2025-02-05)
 
 
@@ -48,12 +55,4 @@
 * also show loaders on regular form submit ([13f5bf8](https://github.com/baumrock/RockForms/commit/13f5bf84802f968f8d117f28634c70a2740fe985))
 * remove RockLoaders requirement ([139c1c9](https://github.com/baumrock/RockForms/commit/139c1c9df1e1e1af6fee16c8233c42023bf098f2))
 * throw exception when debug mode ([9bde8ae](https://github.com/baumrock/RockForms/commit/9bde8ae226ad4a00ba0931076447d1fcb6c28418))
-
-## [1.6.1](https://github.com/baumrock/RockForms/compare/v1.6.0...v1.6.1) (2024-10-01)
-
-
-### Bug Fixes
-
-* revert method getNonSystemValues() that has accidentally been removed ([fc45f71](https://github.com/baumrock/RockForms/commit/fc45f718ca463550962d1d606f038d0204e96fa5))
-* set _nss cookie to make sure htmx submissions work properly ([8465c6c](https://github.com/baumrock/RockForms/commit/8465c6c309ff184d9c1ff9f842c2b5f496fe2ecd))
 
