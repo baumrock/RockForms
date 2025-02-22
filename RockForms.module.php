@@ -96,7 +96,6 @@ class RockForms extends WireData implements Module, ConfigurableModule
 
     // hooks
     wire()->addHookAfter("Page::render", $this, "hookDoubleSubmit");
-    wire()->addHookAfter("Page::render", $this, "hookAddAssets");
     wire()->addHookAfter("Page::render", $this, "hookAddJsWarning");
     wire()->addHook("/" . $this->confirmParam . "/{key}/", $this, "handleConfirm");
     wire()->addHook("/rockforms-csrf/", $this, "hookCreateCSRF");
@@ -301,25 +300,6 @@ class RockForms extends WireData implements Module, ConfigurableModule
       return $this->wire->sanitizer->fieldName($item);
     }, $arr);
     return array_filter($arr);
-  }
-
-  public function hookAddAssets(HookEvent $event)
-  {
-    if (!$this->rendered()->count()) return;
-    $assets = '';
-    if ($this->wire->config->debug) {
-      $assets .= "<!-- RockForms Assets added in RockForms.module.php -->";
-    }
-
-    if (!$this->noLiveValidation) {
-      if ($opt = $this->LiveFormOptions) {
-        $assets .= "<script>LiveFormOptions = " . json_encode($opt) . "</script>";
-      }
-      $live = $this->wire->config->urls->root . "site/modules/RockForms/dst/live-form-validation.min.js";
-      $assets .= "<script src=$live defer></script>";
-    }
-
-    $event->return = str_replace("</head>", "$assets</head>", $event->return);
   }
 
   /**
