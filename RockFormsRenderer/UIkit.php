@@ -15,16 +15,6 @@ class UIkit extends RockFormsRenderer
   public function __construct()
   {
     parent::__construct();
-
-    // set options for live form validation
-    // if live-form-validation script is used this
-    // will make sure that errors on live validation look
-    // the same as non-live errors.
-    $this->rockforms()->LiveFormOptions = [
-      "messageErrorClass" => "uk-alert uk-alert-warning uk-margin-remove uk-display-block",
-      "messageErrorPrefix" => "",
-    ];
-
     // see RockFormsRenderer for all other wrapper settings
     $this->wrappers['error']['item'] = 'div class="uk-alert-danger uk-margin-remove" uk-alert';
     $this->wrappers['control']['errorcontainer'] = 'div class="uk-alert-danger uk-margin-remove" uk-alert';

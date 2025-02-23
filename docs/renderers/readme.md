@@ -29,14 +29,6 @@ public function buildForm()
   // get the renderer and modify it to our liking
   $renderer = $form->getRenderer();
 
-  // set options for live form validation
-  // these are the error messages injected via JS in realtime
-  $errorClass = 'block bg-secondary px-3 py-1 mt-1';
-  $this->rockforms()->LiveFormOptions = [
-    "messageErrorClass" => $errorClass,
-    "messageErrorPrefix" => "",
-  ];
-
   // set markup for wrappers
   // these are the error messages injected from backend validations
   $error = "div class='$errorClass'";
@@ -96,10 +88,6 @@ public function setupForm($form): void
   $renderer = $form->getRenderer();
   // set options for live form validation
   $errorClass = 'block bg-secondary px-3 py-1 mt-1 text-sm';
-  $form->rockforms()->LiveFormOptions = [
-    "messageErrorClass" => $errorClass,
-    "messageErrorPrefix" => "",
-  ];
   // set markup for wrappers
   $error = "div class='$errorClass'";
   $renderer->wrappers['error']['item'] = $error;
