@@ -1,3 +1,12 @@
+## [3.0.2](https://github.com/baumrock/RockForms/compare/v3.0.1...v3.0.2) (2025-03-12)
+
+
+### Bug Fixes
+
+* improve rockdevtools check ([70d6294](https://github.com/baumrock/RockForms/commit/70d6294b95d396c05d28cb6bf30a5455b443e872))
+* new live validation loading concept ([c138168](https://github.com/baumrock/RockForms/commit/c1381687eb512f9ec3e5ec3dead71a83c4b93f05))
+* remove obsolete addAssets hook ([f8d5094](https://github.com/baumrock/RockForms/commit/f8d50945bccac3c1bc8acd57eb158c417f1b2690))
+
 ## [3.0.1](https://github.com/baumrock/RockForms/compare/v3.0.0...v3.0.1) (2025-02-07)
 
 
@@ -36,23 +45,4 @@
 ### Bug Fixes
 
 * better exception in renderForm ([8866ecc](https://github.com/baumrock/RockForms/commit/8866ecc524097a501c061c4573c4b07be44f1af1))
-
-## [2.0.0](https://github.com/baumrock/RockForms/compare/v1.6.1...v2.0.0) (2024-10-21)
-
-
-### ⚠ BREAKING CHANGES
-
-* refactor to use RockLoaders for animations
-
-### Features
-
-* refactor to use RockLoaders for animations ([5c1c335](https://github.com/baumrock/RockForms/commit/5c1c335fc8a7f60684d1098a547b7adee207cfe2))
-
-
-### Bug Fixes
-
-* add missing return statement for rockloader ([d265e86](https://github.com/baumrock/RockForms/commit/d265e86d72f02a37797c0d5903984940ad4677b0))
-* also show loaders on regular form submit ([13f5bf8](https://github.com/baumrock/RockForms/commit/13f5bf84802f968f8d117f28634c70a2740fe985))
-* remove RockLoaders requirement ([139c1c9](https://github.com/baumrock/RockForms/commit/139c1c9df1e1e1af6fee16c8233c42023bf098f2))
-* throw exception when debug mode ([9bde8ae](https://github.com/baumrock/RockForms/commit/9bde8ae226ad4a00ba0931076447d1fcb6c28418))
 
