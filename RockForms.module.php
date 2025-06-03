@@ -112,9 +112,31 @@ class RockForms extends WireData implements Module, ConfigurableModule
     if (wire()->modules->isInstalled('RockLoaders')) {
       rockloaders()->add('dots');
     }
+
+    $this->addAutoDeleteHooks();
   }
 
   // ### regular methods ###
+
+  private function addAutoDeleteHooks(): void
+  {
+    wire()->addHookAfter('Modules::refresh', $this, 'autoDeleteEntries');
+    wire()->addHookAfter('Session::login', $this, 'autoDeleteEntries');
+    wire()->addHookAfter('Pages::added', $this, 'autoDeleteEntries');
+  }
+
+  protected function autoDeleteEntries(): void
+  {
+    $days = $this->keepDays;
+    if (!$days) return;
+    $timestamp = time() - RockMigrations::oneDay * $days;
+    $entries = wire()->pages->find([
+      'include' => 'all',
+      'template' => Entry::tpl,
+      'created<' => $timestamp,
+    ]);
+    foreach ($entries as $entry) $entry->delete();
+  }
 
   /**
    * Get forms that are listed in the <select> field to select a form
@@ -553,6 +575,7 @@ class RockForms extends WireData implements Module, ConfigurableModule
         </ul>",
     ]);
 
+    $this->configGDPR($inputfields);
     $this->configSpam($inputfields);
     $this->configFrontend($inputfields);
     $this->configBackend($inputfields);
@@ -660,6 +683,24 @@ class RockForms extends WireData implements Module, ConfigurableModule
       'type' => 'markup',
       'label' => 'RockForms.js Documentation',
       'value' => 'Please see the <a href="https://www.baumrock.com/en/processwire/modules/rockforms/docs/js/" target="_blank">documentation about RockForms.js</a> for more information on how to properly integrate and use it in your projects.',
+    ]);
+  }
+
+  private function configGDPR(&$inputfields)
+  {
+    $fs = new InputfieldFieldset();
+    $fs->label = "GDPR";
+    $fs->icon = "gavel";
+    $inputfields->add($fs);
+
+    $fs->add([
+      'type' => 'integer',
+      'name' => 'keepDays',
+      'label' => 'Auto-Delete Entries after ... Days',
+      'icon' => 'trash',
+      'value' => $this->keepDays,
+      'notes' => 'Set to "30" to delete entries after 30 days. Empty means no automatic deletion.',
+      'columnWidth' => 100,
     ]);
   }
 
