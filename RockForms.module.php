@@ -646,7 +646,7 @@ class RockForms extends WireData implements Module, ConfigurableModule
     return false;
   }
 
-  public function rendered(RockForm $form = null)
+  public function rendered(?RockForm $form = null)
   {
     $rendered = $this->rendered ?: $this->wire(new WireArray());
     if (!$form) return $rendered;
