@@ -157,6 +157,167 @@ class RockForms extends WireData implements Module, ConfigurableModule
     }
   }
 
+  private function configBackend(&$inputfields)
+  {
+    $fs = new InputfieldFieldset();
+    $fs->label = "Backend";
+    $fs->icon = "sitemap";
+    $inputfields->add($fs);
+
+    $fs->add([
+      'type' => 'checkbox',
+      'name' => 'showDataPage',
+      'label' => 'Show Datapage in Pagetree for Superusers',
+      'checked' => $this->showDataPage ? 'checked' : '',
+      'columnWidth' => 100,
+    ]);
+  }
+
+  private function configDebug(&$inputfields)
+  {
+    $fs = new InputfieldFieldset();
+    $fs->label = "Debug";
+    $fs->icon = "bug";
+    $inputfields->add($fs);
+
+    $fs->add([
+      'type' => 'checkbox',
+      'name' => 'logFormSubmissions',
+      'label' => 'Log Form Submissions to log "form-submissions"',
+      'notes' => 'All form values will be logged as JSON string. This happens before processInput() and before any spam protection is applied, so it is useful for debugging only.',
+      'checked' => $this->logFormSubmissions ? 'checked' : '',
+      'columnWidth' => 100,
+    ]);
+  }
+
+  private function configFrontend(&$inputfields)
+  {
+    $fs = new InputfieldFieldset();
+    $fs->label = "Frontend (Form Submission & Validation)";
+    $fs->icon = "paper-plane-o";
+    $inputfields->add($fs);
+
+    $fs->add([
+      'type' => 'checkbox',
+      'name' => 'noHTMX',
+      'label' => 'HTMX',
+      'description' => 'By default RockForms will submit forms via HTMX to provide great usability out of the box.',
+      'checkboxLabel' => 'Disable HTMX Form Submission',
+      'notes' => '[See docs for details](https://www.baumrock.com/en/processwire/modules/rockforms/docs/).',
+      'checked' => $this->noHTMX ? 'checked' : '',
+      'columnWidth' => 50,
+    ]);
+    $fs->add([
+      'type' => 'checkbox',
+      'name' => 'noHtmxModal',
+      'label' => 'HTMX Modal',
+      'description' => 'By default RockForms add markup and styles for a modal that pops up when submitting the form.',
+      'checkboxLabel' => 'Disable HTMX Modal + CSS Markup',
+      'notes' => 'The markup will be injected at the bottom of your <body>
+        [See docs for details](https://www.baumrock.com/en/processwire/modules/rockforms/docs/).',
+      'checked' => $this->noHtmxModal ? 'checked' : '',
+      'columnWidth' => 50,
+    ]);
+
+    $fs->add([
+      'type' => 'checkbox',
+      'name' => 'noLiveValidation',
+      'label' => 'Live-Validation',
+      'description' => 'By default RockForms will add live-validation to your forms - that means users will get instant validation feedback without submitting the form to the server (and waiting for the response). Thx to NetteForms that JavaScript logic is automatically applied from your PHP code - you don\'t have to code it twice!',
+      'checkboxLabel' => "Disable Live-Validation",
+      'notes' => "[See docs for details and a live demo](https://www.baumrock.com/en/processwire/modules/rockforms/docs/validation/)",
+      'checked' => $this->noLiveValidation ? 'checked' : '',
+      'columnWidth' => 100,
+    ]);
+
+    $fs->add([
+      'type' => 'text',
+      'name' => 'confirmParam',
+      'label' => 'Double-Opt-In',
+      'description' => 'Here you can customise the endpoint for double-opt-in processes if you need to support such workflows to comply with GDPR or simply want to confirm the correctnes of mail addresses etc.',
+      'notes' => 'Default: yourdomain.com/forms-confirm/123abc
+        [See docs for details](https://www.baumrock.com/en/processwire/modules/rockforms/docs/opt-in/)',
+      'value' => $this->confirmParam,
+      'columnWidth' => 50,
+    ]);
+
+    $fs->add([
+      'type' => 'text',
+      'name' => 'successParam',
+      'label' => 'Success Parameter',
+      'description' => 'Specify a URL parameter to redirect to upon successful form submission.',
+      'notes' => 'Default: yourdomain.com/your/page/?form-success=DemoForm
+        See docs about [double form submissions](https://www.baumrock.com/en/processwire/modules/rockforms/docs/double/) for details and a demo.
+        Also see docs about [tracking form submissions when using XTMX](https://www.baumrock.com/en/processwire/modules/rockforms/docs/htmx/#tracking-form-submissions).',
+      'value' => $this->successParam,
+      'columnWidth' => 50,
+    ]);
+
+    $fs->add([
+      'type' => 'markup',
+      'label' => 'RockForms.js Documentation',
+      'value' => 'Please see the <a href="https://www.baumrock.com/en/processwire/modules/rockforms/docs/js/" target="_blank">documentation about RockForms.js</a> for more information on how to properly integrate and use it in your projects.',
+    ]);
+  }
+
+  private function configGDPR(&$inputfields)
+  {
+    $fs = new InputfieldFieldset();
+    $fs->label = "GDPR";
+    $fs->icon = "gavel";
+    $inputfields->add($fs);
+
+    $fs->add([
+      'type' => 'integer',
+      'name' => 'keepDays',
+      'label' => 'Auto-Delete Entries after ... Days',
+      'icon' => 'trash',
+      'value' => $this->keepDays,
+      'notes' => 'Set to "30" to delete entries after 30 days. Empty means no automatic deletion.',
+      'columnWidth' => 100,
+    ]);
+  }
+
+  private function configSpam(&$inputfields)
+  {
+    $fs = new InputfieldFieldset();
+    $fs->label = "Spam Protection";
+    $fs->icon = "filter";
+    $fs->description = 'RockForms spam protection is designed to be as simple as possible for the user filling out the form. Another important requirement is to make it work with ProCache\'d pages which is why we use JavaScript-based techniques as much as possible. Is that 100% accurate or secure? No. Does it work for my clients? Yes :) [See docs for details](https://www.baumrock.com/en/processwire/modules/rockforms/docs/spam/).';
+    $inputfields->add($fs);
+
+    $fs->add([
+      'type' => 'textarea',
+      'name' => 'honeypotfields',
+      'description' => 'To use honeypot fields for your forms enter one fieldname per line. Existing fieldnames will be skipped, so make sure to use good looking names like "message", "comment", "email" or such that you dont use yourself.',
+      'label' => 'Honeypot Fields',
+      'value' => $this->honeypotfields,
+      'notes' => "Enter one per line. If you don't want to use honeypots at all leave this field empty.
+        Note: add .rf-hny { display: none; } to your site's CSS to hide the honeypot fields.",
+      'rows' => 3,
+      'columnWidth' => 50,
+    ]);
+
+    $fs->add([
+      'type' => 'integer',
+      'name' => 'submitdelay',
+      'label' => 'Submit Delay',
+      'description' => 'Set a delay in seconds to prevent spam by analyzing the submission speed. Spam-Bots usually fill forms very quickly - humans don\'t!',
+      'value' => $this->submitdelay,
+      'notes' => 'I recommend a setting of 2, which means that all forms submitted within 2 seconds after page load will be considered spam.
+      A setting of 0 disables this feature.',
+      'columnWidth' => 50,
+    ]);
+
+    $fs->add([
+      'type' => 'checkbox',
+      'name' => 'dontBlockSpammers',
+      'label' => 'WireRequestBlocker',
+      'description' => 'If WireRequestBlocker is installed RockForms will block spammers if they submit a form and the submission is considered spam.',
+      'checkboxLabel' => 'Do not block spammers using WireRequestBlocker',
+    ]);
+  }
+
   public function entriesPage(): Entries|NullPage
   {
     return $this->wire->pages->get([
@@ -278,6 +439,34 @@ class RockForms extends WireData implements Module, ConfigurableModule
   {
     $forms = $this->getForms()->getArray();
     return array_combine(array_keys($forms), array_keys($forms));
+  }
+
+  /**
+   * Config inputfields
+   * @param InputfieldWrapper $inputfields
+   */
+  public function getModuleConfigInputfields($inputfields)
+  {
+    $name = strtolower($this);
+    $inputfields->add([
+      'type' => 'markup',
+      'label' => 'Documentation & Updates',
+      'icon' => 'life-ring',
+      'value' => "<p>Hey there, coding rockstars! 👋</p>
+        <ul>
+          <li><a class=uk-text-bold href=https://www.baumrock.com/modules/$name/docs>Read the docs</a> and level up your coding game! 🚀💻😎</li>
+          <li><a class=uk-text-bold href=https://www.baumrock.com/rock-monthly>Sign up now for our monthly newsletter</a> and receive the latest updates and exclusive offers right to your inbox! 🚀💻📫</li>
+          <li><a class=uk-text-bold href=https://github.com/baumrock/$name>Show some love by starring the project</a> and keep me motivated to build more awesome stuff for you! 🌟💻😊</li>
+          <li><a class=uk-text-bold href=https://paypal.me/baumrockcom>Support my work with a donation</a>, and together, we'll keep rocking the coding world! 💖💻💰</li>
+        </ul>",
+    ]);
+
+    $this->configGDPR($inputfields);
+    $this->configSpam($inputfields);
+    $this->configFrontend($inputfields);
+    $this->configBackend($inputfields);
+    $this->configDebug($inputfields);
+    return $inputfields;
   }
 
   public function handleConfirm(HookEvent $event)
@@ -553,194 +742,5 @@ class RockForms extends WireData implements Module, ConfigurableModule
     }
     if (!is_array($messages)) throw new WireException("Error translations must be an array.");
     Validator::$messages = array_merge(Validator::$messages, $messages);
-  }
-
-  /**
-   * Config inputfields
-   * @param InputfieldWrapper $inputfields
-   */
-  public function getModuleConfigInputfields($inputfields)
-  {
-    $name = strtolower($this);
-    $inputfields->add([
-      'type' => 'markup',
-      'label' => 'Documentation & Updates',
-      'icon' => 'life-ring',
-      'value' => "<p>Hey there, coding rockstars! 👋</p>
-        <ul>
-          <li><a class=uk-text-bold href=https://www.baumrock.com/modules/$name/docs>Read the docs</a> and level up your coding game! 🚀💻😎</li>
-          <li><a class=uk-text-bold href=https://www.baumrock.com/rock-monthly>Sign up now for our monthly newsletter</a> and receive the latest updates and exclusive offers right to your inbox! 🚀💻📫</li>
-          <li><a class=uk-text-bold href=https://github.com/baumrock/$name>Show some love by starring the project</a> and keep me motivated to build more awesome stuff for you! 🌟💻😊</li>
-          <li><a class=uk-text-bold href=https://paypal.me/baumrockcom>Support my work with a donation</a>, and together, we'll keep rocking the coding world! 💖💻💰</li>
-        </ul>",
-    ]);
-
-    $this->configGDPR($inputfields);
-    $this->configSpam($inputfields);
-    $this->configFrontend($inputfields);
-    $this->configBackend($inputfields);
-    $this->configDebug($inputfields);
-    return $inputfields;
-  }
-
-  private function configBackend(&$inputfields)
-  {
-    $fs = new InputfieldFieldset();
-    $fs->label = "Backend";
-    $fs->icon = "sitemap";
-    $inputfields->add($fs);
-
-    $fs->add([
-      'type' => 'checkbox',
-      'name' => 'showDataPage',
-      'label' => 'Show Datapage in Pagetree for Superusers',
-      'checked' => $this->showDataPage ? 'checked' : '',
-      'columnWidth' => 100,
-    ]);
-  }
-
-  private function configDebug(&$inputfields)
-  {
-    $fs = new InputfieldFieldset();
-    $fs->label = "Debug";
-    $fs->icon = "bug";
-    $inputfields->add($fs);
-
-    $fs->add([
-      'type' => 'checkbox',
-      'name' => 'logFormSubmissions',
-      'label' => 'Log Form Submissions to log "form-submissions"',
-      'notes' => 'All form values will be logged as JSON string. This happens before processInput() and before any spam protection is applied, so it is useful for debugging only.',
-      'checked' => $this->logFormSubmissions ? 'checked' : '',
-      'columnWidth' => 100,
-    ]);
-  }
-
-  private function configFrontend(&$inputfields)
-  {
-    $fs = new InputfieldFieldset();
-    $fs->label = "Frontend (Form Submission & Validation)";
-    $fs->icon = "paper-plane-o";
-    $inputfields->add($fs);
-
-    $fs->add([
-      'type' => 'checkbox',
-      'name' => 'noHTMX',
-      'label' => 'HTMX',
-      'description' => 'By default RockForms will submit forms via HTMX to provide great usability out of the box.',
-      'checkboxLabel' => 'Disable HTMX Form Submission',
-      'notes' => '[See docs for details](https://www.baumrock.com/en/processwire/modules/rockforms/docs/).',
-      'checked' => $this->noHTMX ? 'checked' : '',
-      'columnWidth' => 50,
-    ]);
-    $fs->add([
-      'type' => 'checkbox',
-      'name' => 'noHtmxModal',
-      'label' => 'HTMX Modal',
-      'description' => 'By default RockForms add markup and styles for a modal that pops up when submitting the form.',
-      'checkboxLabel' => 'Disable HTMX Modal + CSS Markup',
-      'notes' => 'The markup will be injected at the bottom of your <body>
-        [See docs for details](https://www.baumrock.com/en/processwire/modules/rockforms/docs/).',
-      'checked' => $this->noHtmxModal ? 'checked' : '',
-      'columnWidth' => 50,
-    ]);
-
-    $fs->add([
-      'type' => 'checkbox',
-      'name' => 'noLiveValidation',
-      'label' => 'Live-Validation',
-      'description' => 'By default RockForms will add live-validation to your forms - that means users will get instant validation feedback without submitting the form to the server (and waiting for the response). Thx to NetteForms that JavaScript logic is automatically applied from your PHP code - you don\'t have to code it twice!',
-      'checkboxLabel' => "Disable Live-Validation",
-      'notes' => "[See docs for details and a live demo](https://www.baumrock.com/en/processwire/modules/rockforms/docs/validation/)",
-      'checked' => $this->noLiveValidation ? 'checked' : '',
-      'columnWidth' => 100,
-    ]);
-
-    $fs->add([
-      'type' => 'text',
-      'name' => 'confirmParam',
-      'label' => 'Double-Opt-In',
-      'description' => 'Here you can customise the endpoint for double-opt-in processes if you need to support such workflows to comply with GDPR or simply want to confirm the correctnes of mail addresses etc.',
-      'notes' => 'Default: yourdomain.com/forms-confirm/123abc
-        [See docs for details](https://www.baumrock.com/en/processwire/modules/rockforms/docs/opt-in/)',
-      'value' => $this->confirmParam,
-      'columnWidth' => 50,
-    ]);
-
-    $fs->add([
-      'type' => 'text',
-      'name' => 'successParam',
-      'label' => 'Success Parameter',
-      'description' => 'Specify a URL parameter to redirect to upon successful form submission.',
-      'notes' => 'Default: yourdomain.com/your/page/?form-success=DemoForm
-        See docs about [double form submissions](https://www.baumrock.com/en/processwire/modules/rockforms/docs/double/) for details and a demo.
-        Also see docs about [tracking form submissions when using XTMX](https://www.baumrock.com/en/processwire/modules/rockforms/docs/htmx/#tracking-form-submissions).',
-      'value' => $this->successParam,
-      'columnWidth' => 50,
-    ]);
-
-    $fs->add([
-      'type' => 'markup',
-      'label' => 'RockForms.js Documentation',
-      'value' => 'Please see the <a href="https://www.baumrock.com/en/processwire/modules/rockforms/docs/js/" target="_blank">documentation about RockForms.js</a> for more information on how to properly integrate and use it in your projects.',
-    ]);
-  }
-
-  private function configGDPR(&$inputfields)
-  {
-    $fs = new InputfieldFieldset();
-    $fs->label = "GDPR";
-    $fs->icon = "gavel";
-    $inputfields->add($fs);
-
-    $fs->add([
-      'type' => 'integer',
-      'name' => 'keepDays',
-      'label' => 'Auto-Delete Entries after ... Days',
-      'icon' => 'trash',
-      'value' => $this->keepDays,
-      'notes' => 'Set to "30" to delete entries after 30 days. Empty means no automatic deletion.',
-      'columnWidth' => 100,
-    ]);
-  }
-
-  private function configSpam(&$inputfields)
-  {
-    $fs = new InputfieldFieldset();
-    $fs->label = "Spam Protection";
-    $fs->icon = "filter";
-    $fs->description = 'RockForms spam protection is designed to be as simple as possible for the user filling out the form. Another important requirement is to make it work with ProCache\'d pages which is why we use JavaScript-based techniques as much as possible. Is that 100% accurate or secure? No. Does it work for my clients? Yes :) [See docs for details](https://www.baumrock.com/en/processwire/modules/rockforms/docs/spam/).';
-    $inputfields->add($fs);
-
-    $fs->add([
-      'type' => 'textarea',
-      'name' => 'honeypotfields',
-      'description' => 'To use honeypot fields for your forms enter one fieldname per line. Existing fieldnames will be skipped, so make sure to use good looking names like "message", "comment", "email" or such that you dont use yourself.',
-      'label' => 'Honeypot Fields',
-      'value' => $this->honeypotfields,
-      'notes' => "Enter one per line. If you don't want to use honeypots at all leave this field empty.
-        Note: add .rf-hny { display: none; } to your site's CSS to hide the honeypot fields.",
-      'rows' => 3,
-      'columnWidth' => 50,
-    ]);
-
-    $fs->add([
-      'type' => 'integer',
-      'name' => 'submitdelay',
-      'label' => 'Submit Delay',
-      'description' => 'Set a delay in seconds to prevent spam by analyzing the submission speed. Spam-Bots usually fill forms very quickly - humans don\'t!',
-      'value' => $this->submitdelay,
-      'notes' => 'I recommend a setting of 2, which means that all forms submitted within 2 seconds after page load will be considered spam.
-      A setting of 0 disables this feature.',
-      'columnWidth' => 50,
-    ]);
-
-    $fs->add([
-      'type' => 'checkbox',
-      'name' => 'dontBlockSpammers',
-      'label' => 'WireRequestBlocker',
-      'description' => 'If WireRequestBlocker is installed RockForms will block spammers if they submit a form and the submission is considered spam.',
-      'checkboxLabel' => 'Do not block spammers using WireRequestBlocker',
-    ]);
   }
 }
