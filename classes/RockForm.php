@@ -14,6 +14,7 @@ use ProcessWire\RockForms;
 use ProcessWire\RockFrontend;
 use ProcessWire\RockMails;
 use ProcessWire\WireData;
+use ProcessWire\WireException;
 use ProcessWire\WireTempDir;
 use ReflectionClass;
 use RockForms\Controls\Markup;
@@ -284,6 +285,32 @@ class RockForm extends Form
   public function html(string $html)
   {
     return \Nette\Utils\Html::el()->setHtml($html);
+  }
+
+  /**
+   * Login user by mail and password
+   */
+  protected function login(
+    string $mail,
+    string $password,
+    string $errorMessage,
+  ): bool {
+    $user = wire()->users->get("email=$mail");
+    if (!$user->id) {
+      $this->addError($errorMessage);
+      return false;
+    }
+    try {
+      $loggedInUser = wire()->session->login($user, $password);
+      if (!$loggedInUser) {
+        $this->addError($errorMessage);
+        return false;
+      }
+      return true;
+    } catch (\Throwable $th) {
+      $this->addError($th->getMessage());
+      return false;
+    }
   }
 
   /**
