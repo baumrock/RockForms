@@ -378,10 +378,10 @@ class RockForm extends Form
     return ob_get_clean();
   }
 
-  public function renderTable($values = null): string
+  public function renderTable($values = null, $options = []): string
   {
     if (!$values) $values = $this->getValues();
-    return rockmigrations()->renderTable($values);
+    return rockmigrations()->renderTable($values, $options);
   }
 
   public function rockforms(): RockForms
