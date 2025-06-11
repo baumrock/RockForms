@@ -99,6 +99,14 @@ class RockForm extends Form
         ->setOption('rockforms-system', true)
         ->setHtmlAttribute('no-reset', true)
         ->setValue(rockforms()->getCSRF());
+    } elseif ($this::CSRF === 'domready') {
+      // load csrf on domready
+      // this is for forms on cached pages that should be ready instantly
+      // like a login form that might be auto-filled by the browser
+      $this->addText("csrf", "CSRF Token")
+        ->setOption('rockforms-system', true)
+        ->getControlPrototype()
+        ->addClass('domready');
     } else {
       // CSRF === true
       // this is for forms on procached pages

@@ -55,6 +55,31 @@ document.addEventListener("htmx:afterRequest", (e) => {
 (() => {
   let submitAfterAjax = false;
 
+  const loadCSRF = (form) => {
+    form = form.closest("form");
+    let input = form.querySelector('input[name="csrf"]');
+    if (!input) return;
+    if (input.value) return;
+
+    form.classList.add("csrf-loaded");
+    const rootUrl = form.getAttribute("data-rooturl");
+    fetch(rootUrl + "rockforms-csrf/", {
+      headers: {
+        "X-Requested-With": "XMLHttpRequest",
+      },
+    })
+      .then((response) => response.text())
+      .then((tokenValue) => {
+        input.value = tokenValue;
+        if (submitAfterAjax) form.submit();
+      })
+      .catch((error) => {
+        alert("Error fetching CSRF token");
+        console.error(error);
+        input.value = "";
+      });
+  };
+
   // add class submitting to the form on submit
   document.addEventListener("submit", (e) => {
     const form = e.target;
@@ -89,35 +114,7 @@ document.addEventListener("htmx:afterRequest", (e) => {
   "input,focusin".split(",").forEach((event) => {
     document.addEventListener(event, (e) => {
       let form = e.target.closest("form");
-      if (!form) return;
-
-      let input = form.querySelector('input[name="csrf"]');
-      if (!input) return;
-      if (input.value) return;
-
-      // we only load a token once for every form
-      if (form.classList.contains("csrf-loaded")) return;
-      form.classList.add("csrf-loaded");
-
-      // reset the value and load a new token
-
-      // get data-rooturl from <form> element
-      const rootUrl = e.target.closest("form").getAttribute("data-rooturl");
-      fetch(rootUrl + "rockforms-csrf/", {
-        headers: {
-          "X-Requested-With": "XMLHttpRequest",
-        },
-      })
-        .then((response) => response.text())
-        .then((tokenValue) => {
-          input.value = tokenValue;
-          if (submitAfterAjax) form.submit();
-        })
-        .catch((error) => {
-          alert("Error fetching CSRF token");
-          console.error(error);
-          input.value = "";
-        });
+      if (form && !form.classList.contains("csrf-loaded")) loadCSRF(form);
     });
   });
 
@@ -149,5 +146,13 @@ document.addEventListener("htmx:afterRequest", (e) => {
         "Error on HTMX swap. Inspect returned markup in network tab!"
       );
     }, 400);
+  });
+
+  // load csrf on domready
+  document.addEventListener("DOMContentLoaded", () => {
+    const inputs = document.querySelectorAll(
+      ".RockForm input[name=csrf].domready"
+    );
+    inputs.forEach((input) => loadCSRF(input));
   });
 })();

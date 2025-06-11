@@ -9,6 +9,7 @@ class {name} extends RockForm
   // to disable CSRF for this form
   // to load CSRF on pageload use "pageload" instead of false
   // note that you must only use "pageload" on pages that are not cached!
+  // or use 'domready' to load the csrf via ajax on pageload (supports cached pages)
   // const CSRF = false;
 
   // to disable HTMX for this form
