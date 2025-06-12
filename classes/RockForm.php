@@ -168,9 +168,9 @@ class RockForm extends Form
       ->setOption('rockforms-system', true)
       ->setHtmlAttribute("id", $id)
       ->setHtmlAttribute("hidden", true)
-      ->addRule($this::FILLED)
+      ->addRule($this::Filled)
       ->addRule(
-        $this::MIN,
+        $this::Min,
         "Please wait a moment before submitting the form and try again",
         $delay
       );
