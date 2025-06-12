@@ -1,13 +1,21 @@
 <script>
+  const parent = document.currentScript.parentElement;
   document.addEventListener('DOMContentLoaded', (event) => {
-    let el = document.getElementById('<?= $id ?>');
+    const el = parent.querySelector('input[name="timeonpage"]');
     setInterval(() => {
       el.value = el.value * 1 + 1;
     }, 1000);
-    let form = el.closest('form');
+    const form = el.closest('form');
     form.addEventListener('submit', (event) => {
-      let hidden = el.closest("div[hidden]");
-      if (hidden) hidden.removeAttribute("hidden");
+      // wait for next tick so that live validation has time to run
+      setTimeout(() => {
+        // get text content of .field element
+        const field = parent.querySelector('.field');
+        const error = field.textContent.trim();
+        // remove hidden attribute from parent if it contains an error
+        // otherwise we don't remove it to not mess up with flexboxed forms
+        if (error) parent.removeAttribute('hidden');
+      }, 0);
     });
   });
 </script>

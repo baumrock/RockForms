@@ -163,21 +163,16 @@ class RockForm extends Form
   {
     $delay = $this->rockforms()->submitdelay;
     if (!$delay) return;
-    $id = "timeonpage-" . uniqid();
+    $msg = "Please wait a moment before submitting the form and try again";
     $control = $this->addText("timeonpage")
       ->setOption('rockforms-system', true)
-      ->setHtmlAttribute("id", $id)
       ->setHtmlAttribute("hidden", true)
-      ->addRule($this::Filled)
-      ->addRule(
-        $this::Min,
-        "Please wait a moment before submitting the form and try again",
-        $delay
-      );
+      ->addRule($this::Filled, $msg)
+      ->addRule($this::Min, $msg, $delay);
     $control->setOption("rockforms-submitdelay", true);
     $file = realpath(__DIR__ . "/../includes/wait.php");
-    $script = $this->wire->files->render($file, ['id' => $id]);
-    $this->addMarkup("<div hidden>{timeonpage}$script</div>");
+    $script = wire()->files->render($file);
+    $this->addMarkup("<div hidden><div class='field'>{timeonpage}</div>$script</div>");
   }
 
   /**
