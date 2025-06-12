@@ -450,6 +450,7 @@ class RockForm extends Form
 
     // save meta data to this entry
     $entry->meta('url', $this->getUrl());
+    $entry->meta('ip', wire()->session->getIP());
 
     return $entry;
   }
