@@ -74,7 +74,7 @@ class RockForm extends Form
         return;
       }
 
-      // log spam and block sammpers
+      // log spam and block spammers
       $form->saveToLog();
       $form->blockSpammer();
 
@@ -187,11 +187,11 @@ class RockForm extends Form
     if ($this->hasErrors()) return;
     if (!$this->isSpam) return;
     if (rockforms()->dontBlockSpammers) return;
-    if (!$this->wire->modules->isInstalled('WireRequestBlocker')) return;
+    if (!wire()->modules->isInstalled('WireRequestBlocker')) return;
     wire()->modules->get('WireRequestBlocker')
       ->blocker()
       ->blockIp($_SERVER['REMOTE_ADDR'], [
-        'url' => $this->wire->page->httpUrl(),
+        'url' => wire()->page->httpUrl(),
         'reason' => "Form Spam",
       ]);
   }
@@ -266,7 +266,7 @@ class RockForm extends Form
 
   public function getSanitizedFilename($file): string
   {
-    return $this->wire->sanitizer->fileName($file->getUntrustedName());
+    return wire()->sanitizer->fileName($file->getUntrustedName());
   }
 
   /**
@@ -276,9 +276,9 @@ class RockForm extends Form
    */
   public function getUrl($params = true)
   {
-    if (!$params) return $this->wire->input->url();
-    $query = $this->wire->input->queryString();
-    return $this->wire->input->url() . ($query ? "?$query" : "");
+    if (!$params) return wire()->input->url();
+    $query = wire()->input->queryString();
+    return wire()->input->url() . ($query ? "?$query" : "");
   }
 
   /**
@@ -398,12 +398,12 @@ class RockForm extends Form
 
   public function rockfrontend(): RockFrontend
   {
-    return $this->wire->modules->get('RockFrontend');
+    return wire()->modules->get('RockFrontend');
   }
 
   public function rockmails(): RockMails
   {
-    return $this->wire->modules->get('RockMails');
+    return wire()->modules->get('RockMails');
   }
 
   public function saveEntry($title, $values = null, $saveFiles = true): Entry
@@ -454,8 +454,8 @@ class RockForm extends Form
     if (!$this->isSpam) return;
     if ($this->hasErrors()) return;
     $values = $this->values(true);
-    $values->_ip = $this->wire->session->getIP();
-    $this->wire->log->save(
+    $values->_ip = wire()->session->getIP();
+    wire()->log->save(
       'rockforms-spam',
       print_r($values->getArray(), true),
       ['url' => '']
@@ -489,8 +489,8 @@ class RockForm extends Form
       $session->rockformValues = (array)$this->getValues();
       $param = $this->rockforms()->successParam;
 
-      $query = $this->wire->input->queryString();
-      $url = $this->wire->input->url() . "?$query";
+      $query = wire()->input->queryString();
+      $url = wire()->input->url() . "?$query";
       if ($query) $url .= "&";
       $session->redirect(
         "{$url}$param={$this->name}",
@@ -578,7 +578,7 @@ class RockForm extends Form
   {
     $this->setHtmlAttribute("hx-post", "./?nocache=1");
     $this->setHtmlAttribute("hx-swap", "outerHTML");
-    if ($this->wire->config->rockformsPreserveSuccess) {
+    if (wire()->config->rockformsPreserveSuccess) {
       $this->setHtmlAttribute("hx-swap", "afterend");
     }
     $this->setHtmlAttribute("hx-select", "#" . $this->getID());
@@ -612,9 +612,9 @@ class RockForm extends Form
       if (count($parts) !== 2) continue;
       $key = RockForms::csrfstring . $parts[0];
       $token = $parts[1];
-      $_token = $this->wire->session->get($key);
+      $_token = wire()->session->get($key);
       if ($token === $_token) {
-        $this->wire->session->remove($key);
+        wire()->session->remove($key);
         return; // early exit, no error
       }
     }
