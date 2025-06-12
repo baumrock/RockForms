@@ -14,7 +14,6 @@ use ProcessWire\RockForms;
 use ProcessWire\RockFrontend;
 use ProcessWire\RockMails;
 use ProcessWire\WireData;
-use ProcessWire\WireException;
 use ProcessWire\WireTempDir;
 use ReflectionClass;
 use RockForms\Controls\Markup;
