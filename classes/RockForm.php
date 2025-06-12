@@ -68,7 +68,12 @@ class RockForm extends Form
 
       // then we trigger processInput so the user can add logic
       // and maybe set isSpam manually (when using external tools)
-      $form->processInput();
+      try {
+        $form->processInput();
+      } catch (\Throwable $th) {
+        $form->addError($th->getMessage());
+        return;
+      }
 
       // log spam and block sammpers
       $form->saveToLog();
