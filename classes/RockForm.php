@@ -171,7 +171,11 @@ class RockForm extends Form
     $control->setOption("rockforms-submitdelay", true);
     $file = realpath(__DIR__ . "/../includes/wait.php");
     $script = wire()->files->render($file);
-    $this->addMarkup("<div hidden><div class='field'>{timeonpage}</div>$script</div>");
+    $this->addMarkup("
+      <div style='position:absolute;top:0;left:0;width:0;height:0;overflow:hidden;'>
+        <div class='field'>{timeonpage}</div>$script
+      </div>
+    ");
   }
 
   /**

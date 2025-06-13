@@ -14,7 +14,17 @@
         const error = field.textContent.trim();
         // remove hidden attribute from parent if it contains an error
         // otherwise we don't remove it to not mess up with flexboxed forms
-        if (error) parent.removeAttribute('hidden');
+        if (error) {
+          // rename "style" attribute to style-disabled
+          parent.setAttribute('style-disabled', parent.getAttribute('style'));
+          parent.removeAttribute('style');
+        } else {
+          // rename "style-disabled" attribute to style
+          if (parent.hasAttribute('style-disabled')) {
+            parent.setAttribute('style', parent.getAttribute('style-disabled'));
+            parent.removeAttribute('style-disabled');
+          }
+        }
       }, 0);
     });
   });
