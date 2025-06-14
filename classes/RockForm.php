@@ -68,7 +68,7 @@ class RockForm extends Form
             case 'password':
             case 'password_confirm':
             case 'pass':
-              $values[$k] = '********';
+              $values[$k] = '***';
               break;
           }
         }
