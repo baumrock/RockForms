@@ -62,9 +62,19 @@ class RockForm extends Form
 
       // log form submissions
       if (rockforms()->logFormSubmissions) {
+        $values = $form->getValues();
+        foreach ($values as $k => $v) {
+          switch ($k) {
+            case 'password':
+            case 'password_confirm':
+            case 'pass':
+              $values[$k] = '********';
+              break;
+          }
+        }
         wire()->log->save(
           'form-submissions',
-          wire()->session->getIP() . " ::: " . json_encode($form->getValues())
+          wire()->session->getIP() . " ::: " . json_encode($values)
         );
       }
 
