@@ -62,7 +62,10 @@ class RockForm extends Form
 
       // log form submissions
       if (rockforms()->logFormSubmissions) {
-        wire()->log->save('form-submissions', json_encode($form->getValues()));
+        wire()->log->save(
+          'form-submissions',
+          wire()->session->getIP() . " ::: " . json_encode($form->getValues())
+        );
       }
 
       // then we trigger processInput so the user can add logic
