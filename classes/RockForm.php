@@ -2,6 +2,7 @@
 
 namespace RockForms;
 
+use Nette\Forms\Control;
 use Nette\Forms\Controls\TextInput;
 use Nette\Forms\Form;
 use Nette\Http\FileUpload;
@@ -9,6 +10,7 @@ use Nette\InvalidStateException;
 use Nette\InvalidArgumentException;
 use Nette\NotSupportedException;
 use Nette\Utils\RegexpException;
+use ProcessWire\HookEvent;
 use ProcessWire\ProcessWire;
 use ProcessWire\RockForms;
 use ProcessWire\RockFrontend;
@@ -19,6 +21,7 @@ use ReflectionClass;
 use RockForms\Controls\Markup;
 
 use function ProcessWire\rockforms;
+use function ProcessWire\rockfrontend;
 use function ProcessWire\rockmigrations;
 use function ProcessWire\wire;
 

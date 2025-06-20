@@ -1,5 +1,7 @@
 # Hooks
 
+> Please also see the docs about custom markup as there is a shortcut for applying hooks to fields!
+
 Not everything that glitters is gold.
 
 When coming from the shiny world of ProcessWire, sometimes working with NetteForms can be a little complicated...

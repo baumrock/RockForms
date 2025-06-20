@@ -568,6 +568,23 @@ class RockForms extends WireData implements Module, ConfigurableModule
     }
   }
 
+  public function hookField(
+    callable $callback,
+    ?Control $control = null
+  ): void {
+    wire()->addHookAfter(
+      'RockForms::renderField',
+      function (HookEvent $event) use ($control, $callback) {
+        $c = $event->arguments(1);
+        if ($control && $c->name !== $control->name) return;
+        $dom = rockfrontend()->dom($event->return);
+        $field = $dom->children()->first();
+        $callback($field);
+        $event->return = $dom->html();
+      }
+    );
+  }
+
   /**
    * Turn a regular text field into a <select> field to select a form
    */
