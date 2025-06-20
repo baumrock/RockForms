@@ -26,6 +26,7 @@ class RockForm extends Form
 {
   const CSRF = true;
   const HTMX = true;
+  const noRedirectPattern = false;
   const SUBMITDELAY = true;
   const honeyErrorMessage = "Sorry, we don't like Spam!";
 
@@ -155,8 +156,11 @@ class RockForm extends Form
    * Add custom markup control
    * @return Markup
    */
-  public function addMarkup($str, $name = null)
-  {
+  public function addMarkup(
+    $str,
+    $name = null,
+    ?string $insertBefore = null,
+  ) {
     // try to find tags that represent other fields
     foreach ($this->getControls() as $control) {
       if (strpos($str, "{{$control->name}}") === false) continue;
@@ -168,24 +172,26 @@ class RockForm extends Form
 
     $control = new Markup();
     $control->setHtml($str);
-    $this->addComponent($control, $name ?: uniqid());
+    $this->addComponent($control, $name ?: uniqid(), $insertBefore);
   }
 
   public function addSubmitDelay(): void
   {
     $delay = $this->rockforms()->submitdelay;
     if (!$delay) return;
+    $debug = false;
     $msg = "Please wait a moment before submitting the form and try again";
     $control = $this->addText("timeonpage")
       ->setOption('rockforms-system', true)
-      ->setHtmlAttribute("hidden", true)
+      ->setHtmlAttribute("hidden", $debug ? false : true)
       ->addRule($this::Filled, $msg)
       ->addRule($this::Min, $msg, $delay);
     $control->setOption("rockforms-submitdelay", true);
     $file = realpath(__DIR__ . "/../includes/wait.php");
     $script = wire()->files->render($file);
+    $style = $debug ?: 'position:absolute;top:0;left:0;width:0;height:0;overflow:hidden;';
     $this->addMarkup("
-      <div style='position:absolute;top:0;left:0;width:0;height:0;overflow:hidden;'>
+      <div style='$style'>
         <div class='field'>{timeonpage}</div>$script
       </div>
     ");
@@ -232,6 +238,11 @@ class RockForm extends Form
       $arr[$c->getName()] = $texttools->markupToText((string)$c->caption);
     }
     return $arr;
+  }
+
+  public function firstComponent()
+  {
+    foreach ($this->getComponents() as $c) return $c;
   }
 
   /**
@@ -360,6 +371,24 @@ class RockForm extends Form
    */
   public function render(...$args): void
   {
+    /**
+     * If noRedirectPattern is true, we use the original Nette render method
+     * This is useful for HTMX forms, where we want to show a success message
+     * on top of the form and render the form again (without redirects)
+     */
+    if ($this::noRedirectPattern) {
+      // this is necessary to trigger the onValidate event of the form
+      // which then calls processInput and processSuccess
+      if ($this->isSuccess()) {
+        $this->addMarkup(
+          $this->successMarkup(),
+          insertBefore: $this->firstComponent()->name
+        );
+      }
+      parent::render(...$args);
+      return;
+    }
+
     if ($this->showSuccess()) {
       if (method_exists($this, "renderSuccess")) {
         // get submitted values from session and reset session afterwards
@@ -556,6 +585,8 @@ class RockForm extends Form
   {
     return (int)$this->rockforms()->submitCount->get($this->name);
   }
+
+  public function successMarkup() {}
 
   public function successParam()
   {
