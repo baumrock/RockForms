@@ -541,8 +541,9 @@ class RockForm extends Form
       $query = wire()->input->queryString();
       $url = wire()->input->url() . "?$query";
       if ($query) $url .= "&";
+      $url = "{$url}$param={$this->name}";
       $session->redirect(
-        "{$url}$param={$this->name}",
+        $this->successRedirectUrl($url),
         false // 302
       );
     }
@@ -597,6 +598,19 @@ class RockForm extends Form
       $this->rockforms()->successParam,
       'string'
     );
+  }
+
+  /**
+   * Method that returns the redirect url after success
+   *
+   * Overwrite this method in case you need to modify the redirect url
+   *
+   * @param string $url
+   * @return string
+   */
+  public function successRedirectUrl(string $url): string
+  {
+    return $url;
   }
 
   private function triggerProcessSuccess(): void
