@@ -10,7 +10,6 @@ use Nette\InvalidStateException;
 use Nette\InvalidArgumentException;
 use Nette\NotSupportedException;
 use Nette\Utils\RegexpException;
-use ProcessWire\HookEvent;
 use ProcessWire\ProcessWire;
 use ProcessWire\RockForms;
 use ProcessWire\RockFrontend;
@@ -21,7 +20,6 @@ use ReflectionClass;
 use RockForms\Controls\Markup;
 
 use function ProcessWire\rockforms;
-use function ProcessWire\rockfrontend;
 use function ProcessWire\rockmigrations;
 use function ProcessWire\wire;
 
@@ -35,6 +33,7 @@ class RockForm extends Form
 
   public $appendMarkup = false;
   public $context;
+  public $debug = false;
   public $fieldTags = [];
   public $isSpam = false;
   public $noHTMX = false;
@@ -182,7 +181,7 @@ class RockForm extends Form
   {
     $delay = $this->rockforms()->submitdelay;
     if (!$delay) return;
-    $debug = false;
+    $debug = $this->debug;
     $msg = "Please wait a moment before submitting the form and try again";
     $control = $this->addText("timeonpage")
       ->setOption('rockforms-system', true)
@@ -231,6 +230,21 @@ class RockForm extends Form
   {
     if ($short) return (new ReflectionClass($this))->getShortName();
     return get_class($this);
+  }
+
+  public function debug(): void
+  {
+    $this->debug = true;
+    $this->addMarkup("
+      <style>
+        #{$this->getID()} .rf-hny {
+          display: block !important;
+        }
+        #{$this->getID()} *[hidden] {
+          display: block !important;
+        }
+      </style>
+    ");
   }
 
   public function fieldLabels(): array

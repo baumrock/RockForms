@@ -14,6 +14,19 @@ document.addEventListener("htmx:beforeRequest", (e) => {
   if (typeof Nette == "undefined") return;
   if (e.target.tagName !== "FORM") return;
   if (!Nette.validateForm(e.target)) {
+    console.warn("form is not valid", e.target);
+
+    // this is to help avoid confusion when a form does not submit but
+    // also does not show any errors. this can be the case when the browser
+    // autofills honeypot fields.
+    const errors = e.target.querySelectorAll(".has-error");
+    if (errors.length > 0) {
+      const visibleErrors = Array.from(errors).filter((error) => {
+        return error.offsetParent !== null;
+      });
+      if (visibleErrors.length === 0) alert("Form is not valid");
+    }
+
     e.preventDefault();
     return;
   }
