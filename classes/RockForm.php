@@ -590,7 +590,10 @@ class RockForm extends Form
     return (int)$this->rockforms()->submitCount->get($this->name);
   }
 
-  public function successMarkup() {}
+  public function successMarkup()
+  {
+    return '--- Add method successMarkup() to your form to change this message ---';
+  }
 
   public function successParam()
   {
