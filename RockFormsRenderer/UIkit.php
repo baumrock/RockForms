@@ -3,6 +3,8 @@
 namespace RockForms\Renderer;
 
 use Nette\Forms\Controls\Checkbox;
+use Nette\Forms\Controls\CheckboxList;
+use Nette\Forms\Controls\DateTimeControl;
 use Nette\Forms\Controls\RadioList;
 use Nette\Forms\Controls\SelectBox;
 use Nette\Forms\Controls\SubmitButton;
@@ -42,6 +44,9 @@ class UIkit extends RockFormsRenderer
       } elseif ($control instanceof TextInput) {
         $control->getControlPrototype()
           ->addClass('uk-input');
+      } elseif ($control instanceof DateTimeControl) {
+        $control->getControlPrototype()
+          ->addClass('uk-input');
       } elseif ($control instanceof TextArea) {
         $control->getControlPrototype()
           ->addClass('uk-textarea');
@@ -50,6 +55,10 @@ class UIkit extends RockFormsRenderer
           ->addClass('uk-select');
       } elseif ($control instanceof SubmitButton) {
         $control->getControlPrototype()->addClass('uk-button uk-button-primary');
+      } elseif ($control instanceof CheckboxList) {
+        $control->getControlPrototype()->addClass('uk-checkbox uk-margin-small-right');
+      } else {
+        // bd($control);
       }
     }
 

@@ -43,6 +43,41 @@ $form->addText('full', 'Full Width');
 
 An important thing to note here is that `{forename}` does not only render the `<input>` of the field but also all necessary markup for validation. Try to focus the field and then move to another. The required error message will show up where you put your `{forename}` tag.
 
+## hookField
+
+RockForms provides hookable methods for rendering fields (see docs about hooks). Adding hooks requires some boilerplate code though, so you can also use this shortcut.
+
+Please note that the `$field` variable will be the result of a `rockfrontend()->dom(...)` call, which is a `HtmlPageCrawler` object. See docs about RockFrontend's dom tools for details!
+
+### Hooking a single Field
+
+```php
+// in the buildForm method
+$f = $form->addText(...);
+rockforms()->hookField(
+  // the callback
+  function ($field) {
+    $field->setAttribute('x-show', 'type === "paper"');
+    $field->setAttribute('x-cloak', true);
+  },
+  // the field to apply the hook to
+  $f
+);
+```
+
+### Adding a global hook
+
+Maybe you want to add a certain class to every rendered field. This is how you can do it - just provide the callback without a field:
+
+```php
+// site/ready.php
+rockforms()->hookField(
+  function ($field) {
+    $field->addClass('foo');
+  }
+);
+```
+
 ## Using RockFrontend's DOM Tools
 
 RockFrontend has a great [DOM helper](https://www.baumrock.com/en/processwire/modules/rockfrontend/docs/dom/#html) that can manipulate any HTML markup in a jQuery-like fashion. This can also be great for manipulating the markup of your forms with an easy syntax.
@@ -122,6 +157,10 @@ $form->addText('demo', 'I have a red border')
   ->getLabelPrototype()
   ->addClass('my-class');
 ```
+
+### Adding Classes to Wrappers
+
+Please use the `hookField()` feature for this! See docs above.
 
 ### Adding/setting Attributes
 

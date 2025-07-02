@@ -2,6 +2,7 @@
 
 namespace RockForms;
 
+use Nette\Forms\Control;
 use Nette\Forms\Controls\TextInput;
 use Nette\Forms\Form;
 use Nette\Http\FileUpload;
@@ -26,11 +27,13 @@ class RockForm extends Form
 {
   const CSRF = true;
   const HTMX = true;
+  const noRedirectPattern = false;
   const SUBMITDELAY = true;
   const honeyErrorMessage = "Sorry, we don't like Spam!";
 
   public $appendMarkup = false;
   public $context;
+  public $debug = false;
   public $fieldTags = [];
   public $isSpam = false;
   public $noHTMX = false;
@@ -62,14 +65,32 @@ class RockForm extends Form
 
       // log form submissions
       if (rockforms()->logFormSubmissions) {
-        wire()->log->save('form-submissions', json_encode($form->getValues()));
+        $values = $form->getValues();
+        foreach ($values as $k => $v) {
+          switch ($k) {
+            case 'password':
+            case 'password_confirm':
+            case 'pass':
+              $values[$k] = '***';
+              break;
+          }
+        }
+        wire()->log->save(
+          'form-submissions',
+          wire()->session->getIP() . " ::: " . json_encode($values)
+        );
       }
 
       // then we trigger processInput so the user can add logic
       // and maybe set isSpam manually (when using external tools)
-      $form->processInput();
+      try {
+        $form->processInput();
+      } catch (\Throwable $th) {
+        $form->addError($th->getMessage());
+        return;
+      }
 
-      // log spam and block sammpers
+      // log spam and block spammers
       $form->saveToLog();
       $form->blockSpammer();
 
@@ -98,6 +119,14 @@ class RockForm extends Form
         ->setOption('rockforms-system', true)
         ->setHtmlAttribute('no-reset', true)
         ->setValue(rockforms()->getCSRF());
+    } elseif ($this::CSRF === 'domready') {
+      // load csrf on domready
+      // this is for forms on cached pages that should be ready instantly
+      // like a login form that might be auto-filled by the browser
+      $this->addText("csrf", "CSRF Token")
+        ->setOption('rockforms-system', true)
+        ->getControlPrototype()
+        ->addClass('domready');
     } else {
       // CSRF === true
       // this is for forms on procached pages
@@ -129,8 +158,11 @@ class RockForm extends Form
    * Add custom markup control
    * @return Markup
    */
-  public function addMarkup($str, $name = null)
-  {
+  public function addMarkup(
+    $str,
+    $name = null,
+    ?string $insertBefore = null,
+  ) {
     // try to find tags that represent other fields
     foreach ($this->getControls() as $control) {
       if (strpos($str, "{{$control->name}}") === false) continue;
@@ -142,28 +174,29 @@ class RockForm extends Form
 
     $control = new Markup();
     $control->setHtml($str);
-    $this->addComponent($control, $name ?: uniqid());
+    $this->addComponent($control, $name ?: uniqid(), $insertBefore);
   }
 
   public function addSubmitDelay(): void
   {
     $delay = $this->rockforms()->submitdelay;
     if (!$delay) return;
-    $id = "timeonpage-" . uniqid();
+    $debug = $this->debug;
+    $msg = "Please wait a moment before submitting the form and try again";
     $control = $this->addText("timeonpage")
       ->setOption('rockforms-system', true)
-      ->setHtmlAttribute("id", $id)
-      ->setHtmlAttribute("hidden", true)
-      ->addRule($this::FILLED)
-      ->addRule(
-        $this::MIN,
-        "Please wait a moment before submitting the form and try again",
-        $delay
-      );
+      ->setHtmlAttribute("hidden", $debug ? false : true)
+      ->addRule($this::Filled, $msg)
+      ->addRule($this::Min, $msg, $delay);
     $control->setOption("rockforms-submitdelay", true);
     $file = realpath(__DIR__ . "/../includes/wait.php");
-    $script = $this->wire->files->render($file, ['id' => $id]);
-    $this->addMarkup("<div hidden>{timeonpage}$script</div>");
+    $script = wire()->files->render($file);
+    $style = $debug ?: 'position:absolute;top:0;left:0;width:0;height:0;overflow:hidden;';
+    $this->addMarkup("
+      <div style='$style'>
+        <div class='field'>{timeonpage}</div>$script
+      </div>
+    ");
   }
 
   /**
@@ -179,11 +212,11 @@ class RockForm extends Form
     if ($this->hasErrors()) return;
     if (!$this->isSpam) return;
     if (rockforms()->dontBlockSpammers) return;
-    if (!$this->wire->modules->isInstalled('WireRequestBlocker')) return;
+    if (!wire()->modules->isInstalled('WireRequestBlocker')) return;
     wire()->modules->get('WireRequestBlocker')
       ->blocker()
       ->blockIp($_SERVER['REMOTE_ADDR'], [
-        'url' => $this->wire->page->httpUrl(),
+        'url' => wire()->page->httpUrl(),
         'reason' => "Form Spam",
       ]);
   }
@@ -199,6 +232,21 @@ class RockForm extends Form
     return get_class($this);
   }
 
+  public function debug(): void
+  {
+    $this->debug = true;
+    $this->addMarkup("
+      <style>
+        #{$this->getID()} .rf-hny {
+          display: block !important;
+        }
+        #{$this->getID()} *[hidden] {
+          display: block !important;
+        }
+      </style>
+    ");
+  }
+
   public function fieldLabels(): array
   {
     $arr = [];
@@ -207,6 +255,11 @@ class RockForm extends Form
       $arr[$c->getName()] = $texttools->markupToText((string)$c->caption);
     }
     return $arr;
+  }
+
+  public function firstComponent()
+  {
+    foreach ($this->getComponents() as $c) return $c;
   }
 
   /**
@@ -258,7 +311,7 @@ class RockForm extends Form
 
   public function getSanitizedFilename($file): string
   {
-    return $this->wire->sanitizer->fileName($file->getUntrustedName());
+    return wire()->sanitizer->fileName($file->getUntrustedName());
   }
 
   /**
@@ -268,9 +321,9 @@ class RockForm extends Form
    */
   public function getUrl($params = true)
   {
-    if (!$params) return $this->wire->input->url();
-    $query = $this->wire->input->queryString();
-    return $this->wire->input->url() . ($query ? "?$query" : "");
+    if (!$params) return wire()->input->url();
+    $query = wire()->input->queryString();
+    return wire()->input->url() . ($query ? "?$query" : "");
   }
 
   /**
@@ -284,6 +337,32 @@ class RockForm extends Form
   public function html(string $html)
   {
     return \Nette\Utils\Html::el()->setHtml($html);
+  }
+
+  /**
+   * Login user by mail and password
+   */
+  protected function login(
+    string $mail,
+    string $password,
+    string $errorMessage,
+  ): bool {
+    $user = wire()->users->get("email=$mail");
+    if (!$user->id) {
+      $this->addError($errorMessage);
+      return false;
+    }
+    try {
+      $loggedInUser = wire()->session->login($user, $password);
+      if (!$loggedInUser) {
+        $this->addError($errorMessage);
+        return false;
+      }
+      return true;
+    } catch (\Throwable $th) {
+      $this->addError($th->getMessage());
+      return false;
+    }
   }
 
   /**
@@ -309,6 +388,24 @@ class RockForm extends Form
    */
   public function render(...$args): void
   {
+    /**
+     * If noRedirectPattern is true, we use the original Nette render method
+     * This is useful for HTMX forms, where we want to show a success message
+     * on top of the form and render the form again (without redirects)
+     */
+    if ($this::noRedirectPattern) {
+      // this is necessary to trigger the onValidate event of the form
+      // which then calls processInput and processSuccess
+      if ($this->isSuccess()) {
+        $this->addMarkup(
+          $this->successMarkup(),
+          insertBefore: $this->firstComponent()->name
+        );
+      }
+      parent::render(...$args);
+      return;
+    }
+
     if ($this->showSuccess()) {
       if (method_exists($this, "renderSuccess")) {
         // get submitted values from session and reset session afterwards
@@ -351,10 +448,10 @@ class RockForm extends Form
     return ob_get_clean();
   }
 
-  public function renderTable($values = null): string
+  public function renderTable($values = null, $options = []): string
   {
     if (!$values) $values = $this->getValues();
-    return rockmigrations()->renderTable($values);
+    return rockmigrations()->renderTable($values, $options);
   }
 
   public function rockforms(): RockForms
@@ -364,12 +461,12 @@ class RockForm extends Form
 
   public function rockfrontend(): RockFrontend
   {
-    return $this->wire->modules->get('RockFrontend');
+    return wire()->modules->get('RockFrontend');
   }
 
   public function rockmails(): RockMails
   {
-    return $this->wire->modules->get('RockMails');
+    return wire()->modules->get('RockMails');
   }
 
   public function saveEntry($title, $values = null, $saveFiles = true): Entry
@@ -410,6 +507,7 @@ class RockForm extends Form
 
     // save meta data to this entry
     $entry->meta('url', $this->getUrl());
+    $entry->meta('ip', wire()->session->getIP());
 
     return $entry;
   }
@@ -419,8 +517,8 @@ class RockForm extends Form
     if (!$this->isSpam) return;
     if ($this->hasErrors()) return;
     $values = $this->values(true);
-    $values->_ip = $this->wire->session->getIP();
-    $this->wire->log->save(
+    $values->_ip = wire()->session->getIP();
+    wire()->log->save(
       'rockforms-spam',
       print_r($values->getArray(), true),
       ['url' => '']
@@ -454,11 +552,12 @@ class RockForm extends Form
       $session->rockformValues = (array)$this->getValues();
       $param = $this->rockforms()->successParam;
 
-      $query = $this->wire->input->queryString();
-      $url = $this->wire->input->url() . "?$query";
+      $query = wire()->input->queryString();
+      $url = wire()->input->url() . "?$query";
       if ($query) $url .= "&";
+      $url = "{$url}$param={$this->name}";
       $session->redirect(
-        "{$url}$param={$this->name}",
+        $this->successRedirectUrl($url),
         false // 302
       );
     }
@@ -505,12 +604,30 @@ class RockForm extends Form
     return (int)$this->rockforms()->submitCount->get($this->name);
   }
 
+  public function successMarkup()
+  {
+    return '--- Add method successMarkup() to your form to change this message ---';
+  }
+
   public function successParam()
   {
     return $this->wire()->input->get(
       $this->rockforms()->successParam,
       'string'
     );
+  }
+
+  /**
+   * Method that returns the redirect url after success
+   *
+   * Overwrite this method in case you need to modify the redirect url
+   *
+   * @param string $url
+   * @return string
+   */
+  public function successRedirectUrl(string $url): string
+  {
+    return $url;
   }
 
   private function triggerProcessSuccess(): void
@@ -543,7 +660,7 @@ class RockForm extends Form
   {
     $this->setHtmlAttribute("hx-post", "./?nocache=1");
     $this->setHtmlAttribute("hx-swap", "outerHTML");
-    if ($this->wire->config->rockformsPreserveSuccess) {
+    if (wire()->config->rockformsPreserveSuccess) {
       $this->setHtmlAttribute("hx-swap", "afterend");
     }
     $this->setHtmlAttribute("hx-select", "#" . $this->getID());
@@ -577,9 +694,9 @@ class RockForm extends Form
       if (count($parts) !== 2) continue;
       $key = RockForms::csrfstring . $parts[0];
       $token = $parts[1];
-      $_token = $this->wire->session->get($key);
+      $_token = wire()->session->get($key);
       if ($token === $_token) {
-        $this->wire->session->remove($key);
+        wire()->session->remove($key);
         return; // early exit, no error
       }
     }
