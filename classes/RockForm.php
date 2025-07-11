@@ -658,7 +658,12 @@ class RockForm extends Form
    */
   public function useHTMX(): void
   {
-    $this->setHtmlAttribute("hx-post", "./?nocache=1");
+    // get current query string
+    // this is to make sure we send the request to the same page
+    // for example we might be on a page /foo/?bar=123 and we want to
+    // submit the form to /foo/?bar=123 and not just /foo/
+    $query = wire()->input->queryString();
+    $this->setHtmlAttribute("hx-post", "./?nocache&{$query}");
     $this->setHtmlAttribute("hx-swap", "outerHTML");
     if (wire()->config->rockformsPreserveSuccess) {
       $this->setHtmlAttribute("hx-swap", "afterend");
