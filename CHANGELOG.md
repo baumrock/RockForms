@@ -1,3 +1,10 @@
+## [3.1.1](https://github.com/baumrock/RockForms/compare/v3.1.0...v3.1.1) (2025-07-13)
+
+
+### Bug Fixes
+
+* ajax post losing querystring if present ([095e6be](https://github.com/baumrock/RockForms/commit/095e6bebdfefa36859a2ddababc17c8ca2a728aa))
+
 ## [3.1.0](https://github.com/baumrock/RockForms/compare/v3.0.2...v3.1.0) (2025-07-02)
 
 
@@ -56,11 +63,4 @@
 
 * add field to select a form ([8645bf8](https://github.com/baumrock/RockForms/commit/8645bf870ae622d98bab7d0ba4dd4a34c8e7e943))
 * refactoring & cleanup to use RockDevTools ([f649098](https://github.com/baumrock/RockForms/commit/f649098b97f3c54a0bf24bba68b3b7a27aa4763a))
-
-## [2.1.1](https://github.com/baumrock/RockForms/compare/v2.1.0...v2.1.1) (2024-12-02)
-
-
-### Bug Fixes
-
-* make sure to return wiredata in steps getData ([176962a](https://github.com/baumrock/RockForms/commit/176962a14bb067c85b33d890eef74ab532d4e4ea))
 
