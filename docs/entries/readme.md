@@ -8,6 +8,16 @@ You will get a list of all entries on the process page (Setup > RockForms), whic
 
 As you can see, this list contains all form submissions from all forms.
 
+## Entry Details
+
+An entry that RockForms saves might look like this:
+
+<img src=https://i.imgur.com/iLZUwL1.png class=blur>
+
+As you can see all form data will be visible to you on this entry page. Please note that you do not have to create fields for all your form data. RockForms will save everything as json and present it in a nice way.
+
+If you want to populate ProcessWire pages from form submissions please check out the docs about <a href=../process-input>Processing Form Submissions</a>.
+
 ## Custom List, Option 1
 
 If you want separate lists for each form, you can create custom page listing bookmarks for each form.

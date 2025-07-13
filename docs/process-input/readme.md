@@ -23,11 +23,30 @@ public function processSuccess()
 
 The result is something like this:
 
-<img src="save-entry.png" class="blur">
+<img src="https://i.imgur.com/iLZUwL1.png" class="blur">
 
 ### Confirmation Links
 
 Please see docs about <a href="../double/">Double Opt In</a>.
+
+### Creating Pages
+
+If the default entry pages are not enough for your use case then you can use the PW API to achieve whatever you like:
+
+```php
+public function processSuccess()
+{
+  // get values without system fields like CSRF or honeypots
+  $values = $this->values();
+
+  // create a new page via PW API and save it
+  $p = wire()->pages->new([
+    'template' => 'yourtemplate',
+    'foo' => $values->foo,
+    'bar' => $values->bar,
+  ]);
+}
+```
 
 ### Sending Mails
 
