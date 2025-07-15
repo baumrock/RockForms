@@ -41,11 +41,18 @@ And add it to the list of loaded assets:
 $devtools->assets()
   ->js()
   // ...
-  // load RockForms first
   ->add('/site/modules/RockForms/dst/RockForms.min.js')
-  // then load custom options
-  ->add('/site/templates/scripts/liveformoptions.js')
-  // finally load live validation
   ->add('/site/modules/RockForms/dst/live-form-validation.min.js')
+  ->add('/site/templates/scripts/liveformoptions.js')
   // ...
 ```
+
+## Script Loading Order
+
+**Since version 2025-07-15**, RockForms automatically handles script loading order for live validation. The `live-form-validation.js` script is internally wrapped with a `setTimeout(0)` delay, which means:
+
+- You can load your `LiveFormOptions` configuration **before** or **after** the live validation script
+- Both scripts will execute in the correct order regardless of their load sequence
+- **Important**: Avoid mixing immediate and deferred script loading - use the same loading strategy for both scripts
+
+This flexibility eliminates common timing issues when setting up live form validation options.
