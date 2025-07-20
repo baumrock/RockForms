@@ -34,10 +34,14 @@ document.addEventListener("htmx:beforeRequest", (e) => {
   // show rockloader while submitting
   const loader = e.target.getAttribute("rockloader");
   document.body.setAttribute("rockloader", loader);
+
+  // trigger RockForms:loading event
+  document.dispatchEvent(new CustomEvent("RockForms:loading"));
 });
 // hide rockloader
 document.addEventListener("htmx:afterRequest", (e) => {
   document.body.removeAttribute("rockloader");
+  document.dispatchEvent(new CustomEvent("RockForms:loaded"));
 });
 
 // load htmx on form interaction
