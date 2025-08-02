@@ -1,3 +1,13 @@
+## [3.2.0](https://github.com/baumrock/RockForms/compare/v3.1.1...v3.2.0) (2025-08-02)
+
+
+### Features
+
+* add form-invalid class if nette validation fails ([46e4f87](https://github.com/baumrock/RockForms/commit/46e4f8761c6ab255009a9e4dfce0d02272296967))
+* add global debug flag ([56e79bd](https://github.com/baumrock/RockForms/commit/56e79bd1e1c0d65b20e84f3d6b724f9115560c63))
+* add RockForms:loading and loaded events to listen to ([8e6eb7f](https://github.com/baumrock/RockForms/commit/8e6eb7fc33372175c53c43bd9dd199216a4eb1fc))
+* wrap live validation in settimeout to avoid loading order issues ([20abf8f](https://github.com/baumrock/RockForms/commit/20abf8f58f84da5a51c4fa76c96972b7a203b5f8))
+
 ## [3.1.1](https://github.com/baumrock/RockForms/compare/v3.1.0...v3.1.1) (2025-07-13)
 
 
@@ -51,16 +61,4 @@
 ### Bug Fixes
 
 * add early exit if not <form> element ([d0b0fb2](https://github.com/baumrock/RockForms/commit/d0b0fb2aad78f6a725bcf1ee1ee3f9fae5aa2880))
-
-## [3.0.0](https://github.com/baumrock/RockForms/compare/v2.1.1...v3.0.0) (2025-02-05)
-
-
-### ⚠ BREAKING CHANGES
-
-* refactoring & cleanup to use RockDevTools
-
-### Features
-
-* add field to select a form ([8645bf8](https://github.com/baumrock/RockForms/commit/8645bf870ae622d98bab7d0ba4dd4a34c8e7e943))
-* refactoring & cleanup to use RockDevTools ([f649098](https://github.com/baumrock/RockForms/commit/f649098b97f3c54a0bf24bba68b3b7a27aa4763a))
 
