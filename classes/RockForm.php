@@ -52,6 +52,7 @@ class RockForm extends Form
     $this->wire = $this->wire();
     $this->setRockFormsRenderer('RockFormsRenderer');
     $this->setHtmlAttribute('data-rooturl', wire()->config->urls->root);
+    if (rockforms()->debug) $this->debug();
 
     // attach render hook that tells rockforms that this form
     // has been rendered (necessery for redirects)

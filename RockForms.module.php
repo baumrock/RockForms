@@ -36,6 +36,8 @@ class RockForms extends WireData implements Module, ConfigurableModule
 
   public $confirmParam = "forms-confirm";
 
+  public $debug = false;
+
   public $honeypotfields = "";
 
   /** @var WireArray */
@@ -136,6 +138,11 @@ class RockForms extends WireData implements Module, ConfigurableModule
       'created<' => $timestamp,
     ]);
     foreach ($entries as $entry) $entry->delete();
+  }
+
+  public function debug(): void
+  {
+    $this->debug = true;
   }
 
   /**

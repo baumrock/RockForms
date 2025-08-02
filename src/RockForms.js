@@ -14,7 +14,13 @@ document.addEventListener("htmx:beforeRequest", (e) => {
   if (typeof Nette == "undefined") return;
   if (e.target.tagName !== "FORM") return;
   if (!Nette.validateForm(e.target)) {
+    // add class form-invalid to the form
+    // so that htmx:beforeRequest can prevent to show a loader
+    e.target.classList.add("form-invalid");
+
+    // show warning in console
     console.warn("form is not valid", e.target);
+
     // this is to help avoid confusion when a form does not submit but
     // also does not show any errors. this can be the case when the browser
     // autofills honeypot fields.
@@ -30,14 +36,19 @@ document.addEventListener("htmx:beforeRequest", (e) => {
     e.preventDefault();
     return;
   }
+  e.target.classList.remove("form-invalid");
 
   // show rockloader while submitting
   const loader = e.target.getAttribute("rockloader");
   document.body.setAttribute("rockloader", loader);
+
+  // trigger RockForms:loading event
+  document.dispatchEvent(new CustomEvent("RockForms:loading"));
 });
 // hide rockloader
 document.addEventListener("htmx:afterRequest", (e) => {
   document.body.removeAttribute("rockloader");
+  document.dispatchEvent(new CustomEvent("RockForms:loaded"));
 });
 
 // load htmx on form interaction
