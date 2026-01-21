@@ -15,7 +15,7 @@ use RockForms\Root;
 
 /**
  * @author Bernhard Baumrock, 07.03.2023
- * @license COMMERCIAL PLEASE DO NOT DISTRIBUTE
+ * @license MIT as of 2026-01-21
  * @link https://www.baumrock.com
  */
 
