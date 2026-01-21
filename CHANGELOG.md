@@ -1,3 +1,14 @@
+## [4.0.0](https://github.com/baumrock/RockForms/compare/v3.2.0...v4.0.0) (2026-01-21)
+
+
+### ⚠ BREAKING CHANGES
+
+* change license to MIT
+
+### Bug Fixes
+
+* change license to MIT ([8a28d62](https://github.com/baumrock/RockForms/commit/8a28d6252c5c73115465db7cd03efddf187b946a))
+
 ## [3.2.0](https://github.com/baumrock/RockForms/compare/v3.1.1...v3.2.0) (2025-08-02)
 
 
@@ -54,11 +65,4 @@
 * improve rockdevtools check ([70d6294](https://github.com/baumrock/RockForms/commit/70d6294b95d396c05d28cb6bf30a5455b443e872))
 * new live validation loading concept ([c138168](https://github.com/baumrock/RockForms/commit/c1381687eb512f9ec3e5ec3dead71a83c4b93f05))
 * remove obsolete addAssets hook ([f8d5094](https://github.com/baumrock/RockForms/commit/f8d50945bccac3c1bc8acd57eb158c417f1b2690))
-
-## [3.0.1](https://github.com/baumrock/RockForms/compare/v3.0.0...v3.0.1) (2025-02-07)
-
-
-### Bug Fixes
-
-* add early exit if not <form> element ([d0b0fb2](https://github.com/baumrock/RockForms/commit/d0b0fb2aad78f6a725bcf1ee1ee3f9fae5aa2880))
 
