@@ -22,6 +22,8 @@ class UIkit extends RockFormsRenderer
     $this->wrappers['control']['errorcontainer'] = 'div class="uk-alert-danger uk-margin-remove" uk-alert';
     $this->wrappers['label']['container'] = 'div class="uk-form-label"';
     $this->wrappers['control']['container'] = 'div class="uk-form-controls"';
+    $this->wrappers['control']['description'] =
+      'p class="uk-text-meta uk-margin-small-top uk-margin-remove-bottom"';
     $this->wrappers['hidden']['container'] = 'div class="uk-hidden"';
   }
 
