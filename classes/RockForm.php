@@ -3,6 +3,7 @@
 namespace RockForms;
 
 use Nette\Forms\Control;
+use Nette\Forms\Controls\HiddenField;
 use Nette\Forms\Controls\TextInput;
 use Nette\Forms\Form;
 use Nette\Http\FileUpload;
@@ -113,29 +114,21 @@ class RockForm extends Form
   {
     // no csrf --> early exit
     if (!$this::CSRF) return;
+
+    /** @var HiddenField $control */
+    $control = $this->addHidden('csrf')
+      ->setOption('rockforms-system', true);
+
     if ($this::CSRF === 'pageload') {
-      // we load the csrf token instantly on pageload
-      // this is for forms without any caching (eg RockCommerce checkout)
-      $this->addText("csrf", "CSRF Token")
-        ->setOption('rockforms-system', true)
+      // Token on pageload (forms without caching, e.g. checkout).
+      $control
         ->setHtmlAttribute('no-reset', true)
         ->setValue(rockforms()->getCSRF());
     } elseif ($this::CSRF === 'domready') {
-      // load csrf on domready
-      // this is for forms on cached pages that should be ready instantly
-      // like a login form that might be auto-filled by the browser
-      $this->addText("csrf", "CSRF Token")
-        ->setOption('rockforms-system', true)
-        ->getControlPrototype()
-        ->addClass('domready');
-    } else {
-      // CSRF === true
-      // this is for forms on procached pages
-      // CSRF will be loaded via ajax on form submit
-      $this->addText("csrf", "CSRF Token")
-        ->setOption('rockforms-system', true);
+      // Token loaded via JS on pageload (cached pages, browser autofill).
+      $control->getControlPrototype()->addClass('domready');
     }
-    $this->addMarkup("<div hidden>{csrf}</div>");
+    // CSRF === true: empty value; loaded via ajax on submit/focus.
   }
 
   /**
@@ -147,8 +140,10 @@ class RockForm extends Form
     $honeyFields = $this->rockforms()->honeyFields();
     foreach ($honeyFields as $field) {
       if ($fields->$field) continue;
-      $control = $this->addText($field, "Please enter $field")
-        ->setHtmlAttribute("autocomplete", "off")
+      $control = $this->addText($field, '')
+        ->setHtmlAttribute('autocomplete', 'off')
+        ->setHtmlAttribute('aria-hidden', 'true')
+        ->setHtmlAttribute('tabindex', '-1')
         ->addRule($this::BLANK, self::honeyErrorMessage);
       /** @var TextInput $control */
       $control->setOption("rockforms-honey", true);
@@ -695,8 +690,8 @@ class RockForm extends Form
   {
     foreach ($this->getControls() as $control) {
       if ($control->name !== 'csrf') continue;
-      if (!$control instanceof TextInput) continue;
-      $parts = explode(RockForms::csrfstring, $control->getValue(), 2);
+      if (!($control instanceof TextInput || $control instanceof HiddenField)) continue;
+      $parts = explode(RockForms::csrfstring, (string) $control->getValue(), 2);
       if (count($parts) !== 2) continue;
       $key = RockForms::csrfstring . $parts[0];
       $token = $parts[1];
