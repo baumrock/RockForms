@@ -1,17 +1,16 @@
-<?php
+<?php declare(strict_types=1);
 
 /**
  * This file is part of the Nette Framework (https://nette.org)
  * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
  */
 
-declare(strict_types=1);
-
 namespace Nette\Forms\Controls;
 
 use Nette;
 use Nette\Utils\Html;
 use Stringable;
+use function is_scalar, sprintf;
 
 
 /**
@@ -23,7 +22,7 @@ class HiddenField extends BaseControl
 	private bool $nullable = false;
 
 
-	public function __construct($persistentValue = null)
+	public function __construct(mixed $persistentValue = null)
 	{
 		parent::__construct();
 		$this->control->type = 'hidden';
@@ -38,18 +37,21 @@ class HiddenField extends BaseControl
 
 
 	/**
-	 * Sets control's value.
 	 * @return static
 	 * @internal
 	 */
-	public function setValue($value)
+	public function setValue(mixed $value)
 	{
 		if ($value === null) {
 			$value = '';
 		} elseif ($value instanceof \BackedEnum) {
 			$value = $value->value;
 		} elseif (!is_scalar($value) && !$value instanceof Stringable) {
-			throw new Nette\InvalidArgumentException(sprintf("Value must be scalar or null, %s given in field '%s'.", get_debug_type($value), $this->getName()));
+			throw new Nette\InvalidArgumentException(sprintf(
+				"Value must be scalar or null, %s given in field '%s'.",
+				get_debug_type($value),
+				$this->getName(),
+			));
 		}
 
 		if (!$this->persistValue) {

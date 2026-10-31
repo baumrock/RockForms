@@ -1,21 +1,20 @@
-<?php
+<?php declare(strict_types=1);
 
 /**
  * This file is part of the Nette Framework (https://nette.org)
  * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
  */
 
-declare(strict_types=1);
-
 namespace Nette\Forms\Controls;
 
 use Nette;
 use Nette\Utils\Html;
 use Stringable;
+use function is_scalar, sprintf;
 
 
 /**
- * Check box control. Allows the user to select a true or false condition.
+ * Checkbox control returning a boolean value.
  */
 class Checkbox extends BaseControl
 {
@@ -32,14 +31,17 @@ class Checkbox extends BaseControl
 
 
 	/**
-	 * Sets control's value.
 	 * @return static
 	 * @internal
 	 */
-	public function setValue($value)
+	public function setValue(mixed $value)
 	{
 		if (!is_scalar($value) && $value !== null) {
-			throw new Nette\InvalidArgumentException(sprintf("Value must be scalar or null, %s given in field '%s'.", get_debug_type($value), $this->getName()));
+			throw new Nette\InvalidArgumentException(sprintf(
+				"Value must be scalar or null, %s given in field '%s'.",
+				get_debug_type($value),
+				$this->getName(),
+			));
 		}
 
 		$this->value = (bool) $value;

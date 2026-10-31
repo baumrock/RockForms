@@ -1,11 +1,9 @@
-<?php
+<?php declare(strict_types=1);
 
 /**
  * This file is part of the Nette Framework (https://nette.org)
  * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
  */
-
-declare(strict_types=1);
 
 namespace Nette\Forms\Controls;
 
@@ -15,6 +13,7 @@ use Nette\Forms\Form;
 use Nette\Http\FileUpload;
 use Nette\Utils\Arrays;
 use Stringable;
+use function ini_get, is_array;
 
 
 /**
@@ -70,12 +69,16 @@ class UploadControl extends BaseControl
 	 * @return static
 	 * @internal
 	 */
-	public function setValue($value)
+	public function setValue(mixed $value)
 	{
 		return $this;
 	}
 
 
+	/**
+	 * Returns the uploaded file(s), a dummy FileUpload(null) when nothing was uploaded, or null when nullable is set.
+	 * @return FileUpload|FileUpload[]|null
+	 */
 	public function getValue(): FileUpload|array|null
 	{
 		return $this->value ?? ($this->nullable ? null : new FileUpload(null));
@@ -121,7 +124,10 @@ class UploadControl extends BaseControl
 	}
 
 
-	/** @return static */
+	/**
+	 * @param  (callable(never, never): bool)|string  $validator
+	 * @return static
+	 */
 	public function addRule(
 		callable|string $validator,
 		string|Stringable|null $errorMessage = null,
