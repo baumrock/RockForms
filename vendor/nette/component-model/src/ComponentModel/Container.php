@@ -64,7 +64,7 @@ class Container extends Component implements IContainer
 		// user checking
 		$this->validateChildComponent($component);
 
-		if (isset($this->components[$insertBefore])) {
+		if ($insertBefore !== null && isset($this->components[$insertBefore])) {
 			$tmp = [];
 			foreach ($this->components as $k => $v) {
 				if ((string) $k === $insertBefore) {
