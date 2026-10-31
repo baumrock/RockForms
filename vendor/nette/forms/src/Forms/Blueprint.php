@@ -1,11 +1,9 @@
-<?php
+<?php declare(strict_types=1);
 
 /**
  * This file is part of the Nette Framework (https://nette.org)
  * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
  */
-
-declare(strict_types=1);
 
 namespace Nette\Forms;
 
@@ -87,7 +85,7 @@ final class Blueprint
 	{
 		$dict = new \SplObjectStorage;
 		$dummyForm = new class extends Form {
-			protected function receiveHttpData(): ?array
+			protected function receiveHttpData(): array
 			{
 				return [];
 			}
@@ -95,7 +93,7 @@ final class Blueprint
 
 		foreach ($form->getControls() as $input) {
 			$dict[$input] = $dummyInput = new class extends Controls\BaseControl {
-				public $inner;
+				public Control $inner;
 
 
 				public function getLabel(string|\Stringable|null $caption = null): Html|string|null
@@ -150,8 +148,10 @@ final class Blueprint
 
 		if ($renderer instanceof Rendering\DefaultFormRenderer) {
 			$renderer->wrappers['error']['container'] = $renderer->getWrapper('error container')->setAttribute('n:ifcontent', true);
-			$renderer->wrappers['error']['item'] = $renderer->getWrapper('error item')->setAttribute('n:foreach', '$form->getOwnErrors() as $error');
-			$renderer->wrappers['control']['errorcontainer'] = $renderer->getWrapper('control errorcontainer')->setAttribute('n:ifcontent', true);
+			$renderer->wrappers['error']['item'] = $renderer->getWrapper('error item')
+				->setAttribute('n:foreach', '$form->getOwnErrors() as $error');
+			$renderer->wrappers['control']['errorcontainer'] = $renderer->getWrapper('control errorcontainer')
+				->setAttribute('n:ifcontent', true);
 			$dummyForm->addError('{$error}');
 
 			ob_start();
@@ -208,7 +208,7 @@ final class Blueprint
 					$type = '?' . $type;
 				}
 			} elseif ($input instanceof Container) {
-				$type = $baseName . ucwords($name);
+				$type = $baseName . ucwords((string) $name);
 				$nextCode .= $this->generateDataClass($input, $propertyPromotion, $type);
 				$type .= self::ClassNameSuffix;
 			} else {
@@ -223,8 +223,8 @@ final class Blueprint
 			. "{\n"
 			. ($propertyPromotion
 				? "\tpublic function __construct(\n"
-				. ($props ? "\t\t" . implode(",\n\t\t", $props) . ",\n" : '')
-				. "\t) {\n\t}\n"
+					. ($props ? "\t\t" . implode(",\n\t\t", $props) . ",\n" : '')
+					. "\t) {\n\t}\n"
 				: ($props ? "\t" . implode(";\n\t", $props) . ";\n" : '')
 			)
 			. "}\n\n"

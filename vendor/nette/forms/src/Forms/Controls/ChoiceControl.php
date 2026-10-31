@@ -1,30 +1,33 @@
-<?php
+<?php declare(strict_types=1);
 
 /**
  * This file is part of the Nette Framework (https://nette.org)
  * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
  */
 
-declare(strict_types=1);
-
 namespace Nette\Forms\Controls;
 
 use Nette;
+use function array_key_exists, is_array;
 
 
 /**
  * Choice control that allows single item selection.
  *
- * @property   array $items
- * @property-read mixed $selectedItem
+ * @property   mixed[] $items
+ * @property   bool|array<bool> $disabled
+ * @property-deprecated mixed $selectedItem
  */
 abstract class ChoiceControl extends BaseControl
 {
 	private bool $checkDefaultValue = true;
+
+	/** @var mixed[] */
 	private array $items = [];
 
 
-	public function __construct($label = null, ?array $items = null)
+	/** @param ?mixed[]  $items */
+	public function __construct(string|\Stringable|null $label = null, ?array $items = null)
 	{
 		parent::__construct($label);
 		if ($items !== null) {
@@ -35,12 +38,8 @@ abstract class ChoiceControl extends BaseControl
 
 	public function loadHttpData(): void
 	{
-		$this->value = $this->getHttpData(Nette\Forms\Form::DataText);
-		if ($this->value !== null) {
-			$this->value = is_array($this->disabled) && isset($this->disabled[$this->value])
-				? null
-				: key([$this->value => null]);
-		}
+		$value = $this->getHttpData(Nette\Forms\Form::DataText);
+		$this->value = $value === null ? null : key([$value => null]);
 	}
 
 
@@ -71,19 +70,21 @@ abstract class ChoiceControl extends BaseControl
 
 
 	/**
-	 * Returns selected key.
+	 * Returns the selected key, or null if no valid item is selected or the selection is disabled.
 	 * @return string|int|null
 	 */
 	public function getValue(): mixed
 	{
-		return array_key_exists($this->value, $this->items)
+		return $this->value !== null
+			&& array_key_exists($this->value, $this->items)
+			&& !isset($this->disabled[$this->value])
 			? $this->value
 			: null;
 	}
 
 
 	/**
-	 * Returns selected key (not checked).
+	 * Returns the raw submitted key without validation against the available items.
 	 */
 	public function getRawValue(): string|int|null
 	{
@@ -101,7 +102,8 @@ abstract class ChoiceControl extends BaseControl
 
 
 	/**
-	 * Sets items from which to choose.
+	 * Sets items from which to choose. When $useKeys is false, values are used as keys too.
+	 * @param mixed[]  $items
 	 * @return static
 	 */
 	public function setItems(array $items, bool $useKeys = true)
@@ -113,6 +115,7 @@ abstract class ChoiceControl extends BaseControl
 
 	/**
 	 * Returns items from which to choose.
+	 * @return mixed[]
 	 */
 	public function getItems(): array
 	{
@@ -132,26 +135,38 @@ abstract class ChoiceControl extends BaseControl
 
 	/**
 	 * Disables or enables control or items.
+	 * @param bool|array<int|string>  $state
 	 */
-	public function setDisabled(bool|array $value = true): static
+	public function setDisabled(bool|array $state = true): static
 	{
-		if (!is_array($value)) {
-			return parent::setDisabled($value);
+		if (!is_array($state)) {
+			return parent::setDisabled($state);
 		}
 
 		parent::setDisabled(false);
-		$this->disabled = array_fill_keys($value, value: true);
-		if (isset($this->disabled[$this->value])) {
-			$this->value = null;
-		}
-
+		$this->disabled = array_fill_keys($state, value: true);
 		return $this;
 	}
 
 
+	/**
+	 * Enables or disables validation that the set value exists in the items list.
+	 */
 	public function checkDefaultValue(bool $value = true): static
 	{
 		$this->checkDefaultValue = $value;
 		return $this;
+	}
+
+
+	/**
+	 * Returns the item label for the given key, or throws an exception if the key does not exist.
+	 */
+	protected function getItem(mixed &$key): mixed
+	{
+		$key = key([(string) $key => null]);
+		return array_key_exists($key, $this->items)
+			? $this->items[$key]
+			: throw new Nette\InvalidArgumentException("Item '$key' does not exist in field '{$this->getName()}'.");
 	}
 }

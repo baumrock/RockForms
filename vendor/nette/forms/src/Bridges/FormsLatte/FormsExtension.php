@@ -1,11 +1,9 @@
-<?php
+<?php declare(strict_types=1);
 
 /**
  * This file is part of the Nette Framework (https://nette.org)
  * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
  */
-
-declare(strict_types=1);
 
 namespace Nette\Bridges\FormsLatte;
 
@@ -28,9 +26,12 @@ final class FormsExtension extends Latte\Extension
 			'inputError' => Nodes\InputErrorNode::create(...),
 			'formPrint' => Nodes\FormPrintNode::create(...),
 			'formClassPrint' => Nodes\FormPrintNode::create(...),
-			'n:name' => fn(Latte\Compiler\Tag $tag) => yield from strtolower($tag->htmlElement->name) === 'form'
-				? Nodes\FormNNameNode::create($tag)
-				: Nodes\FieldNNameNode::create($tag),
+			'n:name' => function (Latte\Compiler\Tag $tag) {
+				assert($tag->htmlElement !== null);
+				return yield from strtolower($tag->htmlElement->name) === 'form'
+					? Nodes\FormNNameNode::create($tag)
+					: Nodes\FieldNNameNode::create($tag);
+			},
 		];
 	}
 
@@ -38,13 +39,13 @@ final class FormsExtension extends Latte\Extension
 	public function getProviders(): array
 	{
 		return [
-			'formsStack' => [],
+			'forms' => new Runtime,
 		];
 	}
 
 
 	public function getCacheKey(Latte\Engine $engine): mixed
 	{
-		return 1;
+		return 2;
 	}
 }

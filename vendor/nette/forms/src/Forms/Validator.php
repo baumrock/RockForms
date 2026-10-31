@@ -1,17 +1,15 @@
-<?php
+<?php declare(strict_types=1);
 
 /**
  * This file is part of the Nette Framework (https://nette.org)
  * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
  */
 
-declare(strict_types=1);
-
 namespace Nette\Forms;
 
 use Nette;
-use Nette\Utils\Strings;
-use Nette\Utils\Validators;
+use Nette\Utils\{Strings, Validators};
+use function count, is_array, is_float, is_int, is_object, is_string;
 
 
 /**
@@ -21,6 +19,7 @@ final class Validator
 {
 	use Nette\StaticClass;
 
+	/** @var array<string, string> */
 	public static array $messages = [
 		Controls\CsrfProtection::Protection => 'Your session has expired. Please return to the home page and try again.',
 		Form::Equal => 'Please enter %s.',
@@ -32,7 +31,9 @@ final class Validator
 		Form::Length => 'Please enter a value between %d and %d characters long.',
 		Form::Email => 'Please enter a valid email address.',
 		Form::URL => 'Please enter a valid URL.',
+		Form::Enum => 'Please select a valid option.',
 		Form::Integer => 'Please enter a valid integer.',
+		Form::Numeric => 'Please enter a non-negative integer.',
 		Form::Float => 'Please enter a valid number.',
 		Form::Min => 'Please enter a value greater than or equal to %d.',
 		Form::Max => 'Please enter a value less than or equal to %d.',
@@ -77,16 +78,20 @@ final class Validator
 				case 'label':
 					if ($rule->control instanceof Controls\BaseControl) {
 						$caption = $rule->control->getCaption();
-						$caption = $caption instanceof Nette\HtmlStringable
-							? $caption->getText()
-							: ($translator ? $translator->translate($caption) : $caption);
+						$caption = match (true) {
+							$caption instanceof Nette\Utils\Html => $caption->getText(),
+							$caption instanceof Nette\HtmlStringable => (string) $caption,
+							$translator !== null => $translator->translate($caption),
+							default => $caption,
+						};
 						return rtrim((string) $caption, ':');
 					}
 
 					return '';
+
 				case 'value': return $withValue
-						? $rule->control->getValue()
-						: $m[0];
+					? self::formatValue($rule->control, $rule->control->getValue())
+					: $m[0];
 				default:
 					$args = is_array($rule->arg) ? $rule->arg : [$rule->arg];
 					$i = (int) $m[1] ? (int) $m[1] - 1 : $i + 1;
@@ -94,15 +99,30 @@ final class Validator
 					if ($arg === null) {
 						return '';
 					} elseif ($arg instanceof Control) {
-						return $withValue ? $args[$i]->getValue() : "%$i";
+						return $withValue ? self::formatValue($arg, $arg->getValue()) : "%$i";
 					} elseif ($rule->control instanceof Controls\DateTimeControl) {
 						return $rule->control->formatLocaleText($arg);
 					} else {
 						return $arg;
 					}
 			}
-		}, $message);
+		}, (string) $message);
 		return $message;
+	}
+
+
+	/**
+	 * Formats a control value for a human-readable error message.
+	 */
+	private static function formatValue(Control $control, mixed $value): string
+	{
+		return match (true) {
+			is_array($value) => implode(', ', array_map(fn($item) => self::formatValue($control, $item), $value)),
+			$value instanceof Nette\Http\FileUpload => $value->getUntrustedName(),
+			$value instanceof \DateTimeInterface && $control instanceof Controls\DateTimeControl => $control->formatLocaleText($value),
+			$value instanceof \DateTimeInterface => $value->format('Y-m-d H:i:s'),
+			default => (string) $value,
+		};
 	}
 
 
@@ -110,9 +130,9 @@ final class Validator
 
 
 	/**
-	 * Is control's value equal with second parameter?
+	 * Checks whether the control's value equals the argument (string comparison, supports arrays).
 	 */
-	public static function validateEqual(Control $control, $arg): bool
+	public static function validateEqual(Control $control, mixed $arg): bool
 	{
 		$value = $control->getValue();
 		$values = is_array($value) ? $value : [$value];
@@ -137,16 +157,16 @@ final class Validator
 
 
 	/**
-	 * Is control's value not equal with second parameter?
+	 * Checks whether the control's value does not equal the argument.
 	 */
-	public static function validateNotEqual(Control $control, $arg): bool
+	public static function validateNotEqual(Control $control, mixed $arg): bool
 	{
 		return !static::validateEqual($control, $arg);
 	}
 
 
 	/**
-	 * Returns argument.
+	 * Always returns the argument value, used for static (constant) conditions.
 	 */
 	public static function validateStatic(Control $control, bool $arg): bool
 	{
@@ -155,34 +175,35 @@ final class Validator
 
 
 	/**
-	 * Is control filled?
+	 * Checks whether the control is filled.
 	 */
-	public static function validateFilled(Controls\BaseControl $control): bool
+	public static function validateFilled(Control $control): bool
 	{
 		return $control->isFilled();
 	}
 
 
 	/**
-	 * Is control not filled?
+	 * Checks whether the control is not filled.
 	 */
-	public static function validateBlank(Controls\BaseControl $control): bool
+	public static function validateBlank(Control $control): bool
 	{
 		return !$control->isFilled();
 	}
 
 
 	/**
-	 * Is control valid?
+	 * Checks whether the control passes all its validation rules (used in conditions).
 	 */
-	public static function validateValid(Controls\BaseControl $control): bool
+	public static function validateValid(Control $control): bool
 	{
 		return $control->getRules()->validate();
 	}
 
 
 	/**
-	 * Is a control's value number in specified range?
+	 * Checks whether the control's value falls within the specified range (inclusive).
+	 * @param  array{int|float|string|\DateTimeInterface|null, int|float|string|\DateTimeInterface|null}  $range
 	 */
 	public static function validateRange(Control $control, array $range): bool
 	{
@@ -195,25 +216,26 @@ final class Validator
 
 
 	/**
-	 * Is a control's value number greater than or equal to the specified minimum?
+	 * Checks whether the control's value is greater than or equal to the minimum.
 	 */
-	public static function validateMin(Control $control, $minimum): bool
+	public static function validateMin(Control $control, int|float|string|\DateTimeInterface $minimum): bool
 	{
 		return Validators::isInRange($control->getValue(), [$minimum === '' ? null : $minimum, null]);
 	}
 
 
 	/**
-	 * Is a control's value number less than or equal to the specified maximum?
+	 * Checks whether the control's value is less than or equal to the maximum.
 	 */
-	public static function validateMax(Control $control, $maximum): bool
+	public static function validateMax(Control $control, int|float|string|\DateTimeInterface $maximum): bool
 	{
 		return Validators::isInRange($control->getValue(), [null, $maximum === '' ? null : $maximum]);
 	}
 
 
 	/**
-	 * Count/length validator. Range is array, min and max length pair.
+	 * Checks whether the string length or array count falls within the given range [min, max].
+	 * @param  array{?int, ?int}|int  $range
 	 */
 	public static function validateLength(Control $control, array|int $range): bool
 	{
@@ -227,25 +249,25 @@ final class Validator
 
 
 	/**
-	 * Has control's value minimal count/length?
+	 * Checks whether the string length or array count is at least the specified minimum.
 	 */
-	public static function validateMinLength(Control $control, $length): bool
+	public static function validateMinLength(Control $control, int $length): bool
 	{
 		return static::validateLength($control, [$length, null]);
 	}
 
 
 	/**
-	 * Is control's value count/length in limit?
+	 * Checks whether the string length or array count does not exceed the specified maximum.
 	 */
-	public static function validateMaxLength(Control $control, $length): bool
+	public static function validateMaxLength(Control $control, int $length): bool
 	{
 		return static::validateLength($control, [null, $length]);
 	}
 
 
 	/**
-	 * Has been button pressed?
+	 * Checks whether the submit button was used to submit the form.
 	 */
 	public static function validateSubmitted(Controls\SubmitButton $control): bool
 	{
@@ -254,7 +276,7 @@ final class Validator
 
 
 	/**
-	 * Is control's value valid email address?
+	 * Checks whether the control's value is a valid email address.
 	 */
 	public static function validateEmail(Control $control): bool
 	{
@@ -263,7 +285,7 @@ final class Validator
 
 
 	/**
-	 * Is control's value valid URL?
+	 * Checks whether the control's value is a valid URL. Auto-prepends 'https://' if the scheme is missing.
 	 */
 	public static function validateUrl(Control $control): bool
 	{
@@ -283,8 +305,7 @@ final class Validator
 
 
 	/**
-	 * Does the control's value match the regular expression?
-	 * Case-sensitive to comply with the HTML5 <input /> pattern attribute behaviour
+	 * Checks whether the control's value matches the regular expression (anchored, case-sensitive by default).
 	 */
 	public static function validatePattern(Control $control, string $pattern, bool $caseInsensitive = false): bool
 	{
@@ -307,7 +328,33 @@ final class Validator
 
 
 	/**
-	 * Is a control's value numeric?
+	 * Checks whether the control's value is a valid case of the given backed enum.
+	 * @param  class-string  $enum  backed enum class
+	 */
+	public static function validateEnum(Control $control, string $enum): bool
+	{
+		if (!is_a($enum, \BackedEnum::class, allow_string: true)) {
+			throw new Nette\InvalidArgumentException("The Enum validator requires a backed enum class, '$enum' given.");
+		}
+
+		$intBacked = (new \ReflectionEnum($enum))->getBackingType()?->getName() === 'int';
+		foreach (static::toArray($control->getValue()) as $value) {
+			if ($intBacked) {
+				$value = filter_var($value, FILTER_VALIDATE_INT, FILTER_NULL_ON_FAILURE);
+				if ($value === null || $enum::tryFrom($value) === null) {
+					return false;
+				}
+			} elseif (!is_string($value) || $enum::tryFrom($value) === null) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+
+	/**
+	 * Checks whether the control's value is a non-negative integer string or int.
 	 */
 	public static function validateNumeric(Control $control): bool
 	{
@@ -318,7 +365,7 @@ final class Validator
 
 
 	/**
-	 * Is a control's value decimal number?
+	 * Checks whether the control's value is an integer. Normalizes the value by casting it to int.
 	 */
 	public static function validateInteger(Control $control): bool
 	{
@@ -335,7 +382,7 @@ final class Validator
 
 
 	/**
-	 * Is a control's value float number?
+	 * Checks whether the control's value is a number. Normalizes spaces and commas and casts it to float.
 	 */
 	public static function validateFloat(Control $control): bool
 	{
@@ -354,9 +401,9 @@ final class Validator
 
 
 	/**
-	 * Is file size in limit?
+	 * Checks whether all uploaded files are within the size limit (in bytes).
 	 */
-	public static function validateFileSize(Controls\UploadControl $control, $limit): bool
+	public static function validateFileSize(Controls\UploadControl $control, int $limit): bool
 	{
 		foreach (static::toArray($control->getValue()) as $file) {
 			if ($file->getSize() > $limit || $file->getError() === UPLOAD_ERR_INI_SIZE) {
@@ -369,7 +416,7 @@ final class Validator
 
 
 	/**
-	 * Has file specified mime type?
+	 * Checks whether all uploaded files match one of the allowed MIME types (wildcards like 'image/*' are supported).
 	 * @param  string|string[]  $mimeType
 	 */
 	public static function validateMimeType(Controls\UploadControl $control, string|array $mimeType): bool
@@ -387,7 +434,7 @@ final class Validator
 
 
 	/**
-	 * Is file image?
+	 * Checks whether all uploaded files are images (JPEG, PNG, GIF, WebP, AVIF).
 	 */
 	public static function validateImage(Controls\UploadControl $control): bool
 	{
@@ -401,7 +448,8 @@ final class Validator
 	}
 
 
-	private static function toArray($value): array
+	/** @return mixed[] */
+	private static function toArray(mixed $value): array
 	{
 		return is_object($value) ? [$value] : (array) $value;
 	}

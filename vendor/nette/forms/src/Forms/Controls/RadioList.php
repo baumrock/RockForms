@@ -1,17 +1,16 @@
-<?php
+<?php declare(strict_types=1);
 
 /**
  * This file is part of the Nette Framework (https://nette.org)
  * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
  */
 
-declare(strict_types=1);
-
 namespace Nette\Forms\Controls;
 
 use Nette;
 use Nette\Utils\Html;
 use Stringable;
+use function func_num_args, is_array;
 
 
 /**
@@ -29,6 +28,7 @@ class RadioList extends ChoiceControl
 	protected Html $itemLabel;
 
 
+	/** @param  ?mixed[]  $items */
 	public function __construct(string|Stringable|null $label = null, ?array $items = null)
 	{
 		parent::__construct($label, $items);
@@ -44,6 +44,9 @@ class RadioList extends ChoiceControl
 	{
 		$input = parent::getControl();
 		$items = $this->getItems();
+		if (!$items) {
+			return Html::el();
+		}
 		$ids = [];
 		if ($this->generateId) {
 			foreach ($items as $value => $label) {
@@ -54,12 +57,13 @@ class RadioList extends ChoiceControl
 		return $this->container->setHtml(
 			Nette\Forms\Helpers::createInputList(
 				$this->translate($items),
-				array_merge($input->attrs, [
+				[
+					...$input->attrs,
 					'id:' => $ids,
 					'checked?' => $this->value,
 					'disabled:' => $this->disabled,
-					'data-nette-rules:' => [key($items) => $input->attrs['data-nette-rules']],
-				]),
+					'data-nette-rules:' => [array_key_first($items) => $input->attrs['data-nette-rules']],
+				],
 				['for:' => $ids] + $this->itemLabel->attrs,
 				$this->separator,
 			),
@@ -73,23 +77,29 @@ class RadioList extends ChoiceControl
 	}
 
 
+	/**
+	 * Returns the HTML input element for a specific radio button item by key.
+	 */
 	public function getControlPart($key = null): Html
 	{
-		$key = key([(string) $key => null]);
+		$this->getItem($key);
 		return parent::getControl()->addAttributes([
 			'id' => $this->getHtmlId() . '-' . $key,
-			'checked' => in_array($key, (array) $this->value, strict: true),
+			'checked' => in_array($key, (array) $this->value, true),
 			'disabled' => is_array($this->disabled) ? isset($this->disabled[$key]) : $this->disabled,
 			'value' => $key,
 		]);
 	}
 
 
+	/**
+	 * Returns the label element for the whole radio list, or the item label for a specific key.
+	 */
 	public function getLabelPart($key = null): Html
 	{
 		$itemLabel = clone $this->itemLabel;
 		return func_num_args()
-			? $itemLabel->setText($this->translate($this->getItems()[$key]))->for($this->getHtmlId() . '-' . $key)
+			? $itemLabel->setText($this->translate($this->getItem($key)))->for($this->getHtmlId() . '-' . $key)
 			: $this->getLabel();
 	}
 

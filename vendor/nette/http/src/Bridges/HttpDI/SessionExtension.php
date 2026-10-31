@@ -1,32 +1,36 @@
-<?php
+<?php declare(strict_types=1);
 
 /**
  * This file is part of the Nette Framework (https://nette.org)
  * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
  */
 
-declare(strict_types=1);
-
 namespace Nette\Bridges\HttpDI;
 
 use Nette;
-use Nette\Http\IResponse;
+use Nette\Http\SameSite;
 use Nette\Schema\Expect;
 
 
 /**
  * Session extension for Nette DI.
+ *
+ * @property object{
+ *     debugger: bool,
+ *     autoStart: 'smart'|'always'|'never'|bool,
+ *     expiration: ?string,
+ *     handler: ?string,
+ *     readAndClose: ?bool,
+ *     cookieSamesite: 'Lax'|'Strict'|'None',
+ *     cookieDomain?: string,
+ * } $config
  */
 class SessionExtension extends Nette\DI\CompilerExtension
 {
-	private bool $debugMode;
-	private bool $cliMode;
-
-
-	public function __construct(bool $debugMode = false, bool $cliMode = false)
-	{
-		$this->debugMode = $debugMode;
-		$this->cliMode = $cliMode;
+	public function __construct(
+		private readonly bool $debugMode = false,
+		private readonly bool $cliMode = false,
+	) {
 	}
 
 
@@ -38,9 +42,9 @@ class SessionExtension extends Nette\DI\CompilerExtension
 			'expiration' => Expect::string()->dynamic(),
 			'handler' => Expect::string()->dynamic(),
 			'readAndClose' => Expect::bool(),
-			'cookieSamesite' => Expect::anyOf(IResponse::SameSiteLax, IResponse::SameSiteStrict, IResponse::SameSiteNone)
+			'cookieSamesite' => Expect::anyOf(SameSite::Lax->value, SameSite::Strict->value, SameSite::None->value)
 				->firstIsDefault(),
-		])->otherItems('mixed');
+		])->otherItems();
 	}
 
 

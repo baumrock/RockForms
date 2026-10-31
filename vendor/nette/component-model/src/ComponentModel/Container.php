@@ -1,21 +1,18 @@
-<?php
+<?php declare(strict_types=1);
 
 /**
  * This file is part of the Nette Framework (https://nette.org)
  * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
  */
 
-declare(strict_types=1);
-
 namespace Nette\ComponentModel;
 
 use Nette;
+use function func_get_args;
 
 
 /**
- * ComponentContainer is default implementation of IContainer.
- *
- * @property-read IComponent[] $components
+ * Manages a collection of child components.
  */
 class Container extends Component implements IContainer
 {
@@ -23,31 +20,25 @@ class Container extends Component implements IContainer
 
 	/** @var IComponent[] */
 	private array $components = [];
-	private ?Container $cloning = null;
 
 
 	/********************* interface IContainer ****************d*g**/
 
 
 	/**
-	 * Adds the component to the container.
-	 * @return static
+	 * Adds a child component to the container.
 	 * @throws Nette\InvalidStateException
 	 */
-	public function addComponent(IComponent $component, ?string $name, ?string $insertBefore = null)
+	public function addComponent(IComponent $component, ?string $name, ?string $insertBefore = null): static
 	{
 		if ($name === null) {
-			$name = $component->getName();
-			if ($name === null) {
-				throw new Nette\InvalidStateException("Missing component's name.");
-			}
+			$name = $component->getName() ?? throw new Nette\InvalidStateException("Missing component's name.");
 		}
 
 		if (!preg_match(self::NameRegexp, $name)) {
 			throw new Nette\InvalidArgumentException("Component name must be non-empty alphanumeric string, '$name' given.");
-		}
 
-		if (isset($this->components[$name])) {
+		} elseif (isset($this->components[$name])) {
 			throw new Nette\InvalidStateException("Component with name '$name' already exists.");
 		}
 
@@ -57,9 +48,7 @@ class Container extends Component implements IContainer
 			if ($obj === $component) {
 				throw new Nette\InvalidStateException("Circular reference detected while adding component '$name'.");
 			}
-
-			$obj = $obj->getParent();
-		} while ($obj !== null);
+		} while (($obj = $obj->getParent()) !== null);
 
 		// user checking
 		$this->validateChildComponent($component);
@@ -75,6 +64,7 @@ class Container extends Component implements IContainer
 			}
 
 			$this->components = $tmp;
+
 		} else {
 			$this->components[$name] = $component;
 		}
@@ -82,7 +72,12 @@ class Container extends Component implements IContainer
 		try {
 			$component->setParent($this, $name);
 		} catch (\Throwable $e) {
-			unset($this->components[$name]); // undo
+			if (($this->getComponents()[$name] ?? null) === $component
+				&& ($component->getParent() !== $this || $component->getName() !== $name) // unless a listener has put it back
+			) {
+				unset($this->components[$name]); // undo
+			}
+
 			throw $e;
 		}
 
@@ -91,22 +86,24 @@ class Container extends Component implements IContainer
 
 
 	/**
-	 * Removes the component from the container.
+	 * Removes a child component from the container.
 	 */
 	public function removeComponent(IComponent $component): void
 	{
 		$name = $component->getName();
-		if (($this->components[$name] ?? null) !== $component) {
+		if ($name === null || ($this->components[$name] ?? null) !== $component) {
 			throw new Nette\InvalidArgumentException("Component named '$name' is not located in this container.");
 		}
 
-		unset($this->components[$name]);
 		$component->setParent(null);
+		if ($component->getParent() === null && ($this->getComponents()[$name] ?? null) === $component) { // unless a listener has put it back, or another one in its place
+			unset($this->components[$name]);
+		}
 	}
 
 
 	/**
-	 * Returns component specified by name or path.
+	 * Retrieves a child component by name or creates it if it doesn't exist.
 	 * @param  bool  $throw  throw exception if component doesn't exist?
 	 * @return ($throw is true ? IComponent : ?IComponent)
 	 */
@@ -116,11 +113,9 @@ class Container extends Component implements IContainer
 
 		if (!isset($this->components[$name])) {
 			if (!preg_match(self::NameRegexp, $name)) {
-				if ($throw) {
-					throw new Nette\InvalidArgumentException("Component name must be non-empty alphanumeric string, '$name' given.");
-				}
-
-				return null;
+				return $throw
+					? throw new Nette\InvalidArgumentException("Component name must be non-empty alphanumeric string, '$name' given.")
+					: null;
 			}
 
 			$component = $this->createComponent($name);
@@ -141,10 +136,10 @@ class Container extends Component implements IContainer
 				throw new Nette\InvalidArgumentException("Component with name '$name' is not container and cannot have '$parts[1]' component.");
 			}
 		} elseif ($throw) {
-			$hint = Nette\Utils\ObjectHelpers::getSuggestion(array_merge(
-				array_map('strval', array_keys($this->components)),
-				array_map('lcfirst', preg_filter('#^createComponent([A-Z0-9].*)#', '$1', get_class_methods($this))),
-			), $name);
+			$hint = Nette\Utils\ObjectHelpers::getSuggestion([
+				...array_map(strval(...), array_keys($this->components)),
+				...array_map(lcfirst(...), preg_filter('#^createComponent([A-Z0-9].*)#', '$1', get_class_methods($this))),
+			], $name);
 			throw new Nette\InvalidArgumentException("Component with name '$name' does not exist" . ($hint ? ", did you mean '$hint'?" : '.'));
 		}
 
@@ -153,7 +148,7 @@ class Container extends Component implements IContainer
 
 
 	/**
-	 * Component factory. Delegates the creation of components to a createComponent<Name> method.
+	 * Creates a new component. Delegates creation to createComponent<Name> method if it exists.
 	 */
 	protected function createComponent(string $name): ?IComponent
 	{
@@ -178,24 +173,18 @@ class Container extends Component implements IContainer
 
 
 	/**
-	 * Returns immediate child components.
-	 * @return array<int|string,IComponent>
+	 * Returns all immediate child components.
+	 * @return IComponent[]
 	 */
-	final public function getComponents(): iterable
+	final public function getComponents(): array
 	{
-		$filterType = func_get_args()[1] ?? null;
-		if (func_get_args()[0] ?? null) { // back compatibility
-			$iterator = new RecursiveComponentIterator($this->components);
-			$iterator = new \RecursiveIteratorIterator($iterator, \RecursiveIteratorIterator::SELF_FIRST);
-			if ($filterType) {
-				$iterator = new \CallbackFilterIterator($iterator, fn($item) => $item instanceof $filterType);
-			}
-			return $iterator;
+		if (func_get_args()[0] ?? null) {
+			throw new Nette\DeprecatedException(__METHOD__ . '() with recursive flag is deprecated. Use getComponentTree() instead.');
 		}
-
-		return $filterType
-			? array_filter($this->components, fn($item) => $item instanceof $filterType)
-			: $this->components;
+		if (func_get_args()[1] ?? null) {
+			throw new Nette\DeprecatedException('Using Container::getComponents() with filter type is deprecated.');
+		}
+		return $this->components;
 	}
 
 
@@ -209,7 +198,7 @@ class Container extends Component implements IContainer
 		foreach ($this->components as $component) {
 			$res[] = $component;
 			if ($component instanceof self) {
-				$res = array_merge($res, $component->getComponentTree());
+				$res = [...$res, ...$component->getComponentTree()];
 			}
 		}
 		return $res;
@@ -217,7 +206,8 @@ class Container extends Component implements IContainer
 
 
 	/**
-	 * Descendant can override this method to disallow insert a child by throwing an Nette\InvalidStateException.
+	 * Validates a child component before it's added to the container.
+	 * Descendant classes can override this to implement custom validation logic.
 	 * @throws Nette\InvalidStateException
 	 */
 	protected function validateChildComponent(IComponent $child): void
@@ -229,31 +219,23 @@ class Container extends Component implements IContainer
 
 
 	/**
-	 * Object cloning.
+	 * Handles object cloning. Clones all child components and re-sets their parents.
 	 */
 	public function __clone()
 	{
 		if ($this->components) {
 			$oldMyself = reset($this->components)->getParent();
 			assert($oldMyself instanceof self);
-			$oldMyself->cloning = $this;
-			foreach ($this->components as $name => $component) {
-				$this->components[$name] = clone $component;
+			\Closure::bind(fn(Container $clone) => $this->cloning = $clone, $oldMyself, Component::class)($this);
+			try {
+				foreach ($this->components as $name => $component) {
+					$this->components[$name] = clone $component;
+				}
+			} finally {
+				\Closure::bind(fn() => $this->cloning = null, $oldMyself, Component::class)();
 			}
-
-			$oldMyself->cloning = null;
 		}
 
 		parent::__clone();
-	}
-
-
-	/**
-	 * Is container cloning now?
-	 * @internal
-	 */
-	final public function _isCloning(): ?self
-	{
-		return $this->cloning;
 	}
 }

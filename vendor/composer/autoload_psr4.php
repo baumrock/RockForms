@@ -6,4 +6,5 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
+    'Nette\\' => array($vendorDir . '/nette/forms/src', $vendorDir . '/nette/http/src', $vendorDir . '/nette/component-model/src', $vendorDir . '/nette/utils/src'),
 );
