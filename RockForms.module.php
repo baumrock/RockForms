@@ -111,7 +111,12 @@ class RockForms extends WireData implements Module, ConfigurableModule
 
     // add rockloader if the module is installed
     // we don't want rockloaders to be a requirement for this module
-    if (wire()->modules->isInstalled('RockLoaders')) {
+    // Guard with function_exists: isInstalled can be true while the module
+    // file (and its helper) is missing, or before that module has loaded.
+    if (
+      function_exists('ProcessWire\\rockloaders')
+      && wire()->modules->isInstalled('RockLoaders')
+    ) {
       rockloaders()->add('dots');
     }
 
