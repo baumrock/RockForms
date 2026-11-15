@@ -1,30 +1,33 @@
-<?php
+<?php declare(strict_types=1);
 
 /**
  * This file is part of the Nette Framework (https://nette.org)
  * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
  */
 
-declare(strict_types=1);
-
 namespace Nette\Forms\Controls;
 
 use Nette;
+use function array_key_exists, count, is_array, is_scalar, sprintf;
 
 
 /**
  * Choice control that allows multiple items selection.
  *
- * @property   array $items
- * @property-read array $selectedItems
+ * @property   mixed[] $items
+ * @property   bool|array<bool> $disabled
+ * @property-deprecated mixed[] $selectedItems
  */
 abstract class MultiChoiceControl extends BaseControl
 {
 	private bool $checkDefaultValue = true;
+
+	/** @var mixed[] */
 	private array $items = [];
 
 
-	public function __construct($label = null, ?array $items = null)
+	/** @param ?mixed[]  $items */
+	public function __construct(string|\Stringable|null $label = null, ?array $items = null)
 	{
 		parent::__construct($label);
 		if ($items !== null) {
@@ -36,23 +39,23 @@ abstract class MultiChoiceControl extends BaseControl
 	public function loadHttpData(): void
 	{
 		$this->value = array_keys(array_flip($this->getHttpData(Nette\Forms\Form::DataText)));
-		if (is_array($this->disabled)) {
-			$this->value = array_diff($this->value, array_keys($this->disabled));
-		}
 	}
 
 
 	/**
-	 * Sets selected items (by keys).
 	 * @return static
 	 * @internal
 	 */
-	public function setValue($values)
+	public function setValue(mixed $values)
 	{
 		if (is_scalar($values) || $values === null) {
 			$values = (array) $values;
 		} elseif (!is_array($values)) {
-			throw new Nette\InvalidArgumentException(sprintf("Value must be array or null, %s given in field '%s'.", get_debug_type($values), $this->getName()));
+			throw new Nette\InvalidArgumentException(sprintf(
+				"Value must be array or null, %s given in field '%s'.",
+				get_debug_type($values),
+				$this->getName(),
+			));
 		}
 
 		$flip = [];
@@ -60,7 +63,11 @@ abstract class MultiChoiceControl extends BaseControl
 			if ($value instanceof \BackedEnum) {
 				$value = $value->value;
 			} elseif (!is_scalar($value) && !$value instanceof \Stringable) {
-				throw new Nette\InvalidArgumentException(sprintf("Values must be scalar, %s given in field '%s'.", get_debug_type($value), $this->getName()));
+				throw new Nette\InvalidArgumentException(sprintf(
+					"Values must be scalar, %s given in field '%s'.",
+					get_debug_type($value),
+					$this->getName(),
+				));
 			}
 
 			$flip[(string) $value] = true;
@@ -84,15 +91,17 @@ abstract class MultiChoiceControl extends BaseControl
 
 	/**
 	 * Returns selected keys.
+	 * @return list<int|string>
 	 */
 	public function getValue(): array
 	{
-		return array_values(array_intersect($this->value, array_keys($this->items)));
+		return array_keys($this->getSelectedItems());
 	}
 
 
 	/**
-	 * Returns selected keys (not checked).
+	 * Returns raw submitted keys without validation against the available items.
+	 * @return list<int|string>
 	 */
 	public function getRawValue(): array
 	{
@@ -101,16 +110,8 @@ abstract class MultiChoiceControl extends BaseControl
 
 
 	/**
-	 * Is any item selected?
-	 */
-	public function isFilled(): bool
-	{
-		return $this->getValue() !== [];
-	}
-
-
-	/**
-	 * Sets items from which to choose.
+	 * Sets items from which to choose. When $useKeys is false, values are used as keys too.
+	 * @param mixed[]  $items
 	 * @return static
 	 */
 	public function setItems(array $items, bool $useKeys = true)
@@ -122,6 +123,7 @@ abstract class MultiChoiceControl extends BaseControl
 
 	/**
 	 * Returns items from which to choose.
+	 * @return mixed[]
 	 */
 	public function getItems(): array
 	{
@@ -130,26 +132,33 @@ abstract class MultiChoiceControl extends BaseControl
 
 
 	/**
-	 * Returns selected values.
+	 * Returns key-value pairs for valid, non-disabled selected items.
+	 * @return mixed[]
 	 */
 	public function getSelectedItems(): array
 	{
-		return array_intersect_key($this->items, array_flip($this->value));
+		$res = [];
+		foreach ($this->value as $key) {
+			if (isset($this->items[$key]) && !isset($this->disabled[$key])) {
+				$res[$key] = $this->items[$key];
+			}
+		}
+		return $res;
 	}
 
 
 	/**
 	 * Disables or enables control or items.
+	 * @param bool|array<int|string>  $state
 	 */
-	public function setDisabled(bool|array $value = true): static
+	public function setDisabled(bool|array $state = true): static
 	{
-		if (!is_array($value)) {
-			return parent::setDisabled($value);
+		if (!is_array($state)) {
+			return parent::setDisabled($state);
 		}
 
 		parent::setDisabled(false);
-		$this->disabled = array_fill_keys($value, value: true);
-		$this->value = array_diff($this->value, $value);
+		$this->disabled = array_fill_keys($state, value: true);
 		return $this;
 	}
 
@@ -163,9 +172,24 @@ abstract class MultiChoiceControl extends BaseControl
 	}
 
 
+	/**
+	 * Enables or disables validation that set values exist in the items list.
+	 */
 	public function checkDefaultValue(bool $value = true): static
 	{
 		$this->checkDefaultValue = $value;
 		return $this;
+	}
+
+
+	/**
+	 * Returns the item label for the given key, or throws an exception if the key does not exist.
+	 */
+	protected function getItem(mixed &$key): mixed
+	{
+		$key = key([(string) $key => null]);
+		return array_key_exists($key, $this->items)
+			? $this->items[$key]
+			: throw new Nette\InvalidArgumentException("Item '$key' does not exist in field '{$this->getName()}'.");
 	}
 }

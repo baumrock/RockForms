@@ -1,11 +1,9 @@
-<?php
+<?php declare(strict_types=1);
 
 /**
  * This file is part of the Nette Framework (https://nette.org)
  * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
  */
-
-declare(strict_types=1);
 
 namespace Nette\Forms\Controls;
 
@@ -15,7 +13,7 @@ use Stringable;
 
 
 /**
- * CSRF protection field.
+ * @deprecated default protection is sufficient
  */
 class CsrfProtection extends HiddenField
 {
@@ -53,7 +51,7 @@ class CsrfProtection extends HiddenField
 	/**
 	 * @internal
 	 */
-	public function setValue($value): static
+	public function setValue(mixed $value): static
 	{
 		return $this;
 	}
@@ -82,7 +80,7 @@ class CsrfProtection extends HiddenField
 
 	private function generateToken(?string $random = null): string
 	{
-		$random ??= Nette\Utils\Random::generate(10);
+		$random ??= Nette\Utils\Random::generate();
 		return $random . base64_encode(sha1($this->getToken() . $random, binary: true));
 	}
 

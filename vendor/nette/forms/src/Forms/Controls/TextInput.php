@@ -1,17 +1,16 @@
-<?php
+<?php declare(strict_types=1);
 
 /**
  * This file is part of the Nette Framework (https://nette.org)
  * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
  */
 
-declare(strict_types=1);
-
 namespace Nette\Forms\Controls;
 
 use Nette;
 use Nette\Forms\Form;
 use Stringable;
+use function in_array, is_scalar;
 
 
 /**
@@ -56,12 +55,15 @@ class TextInput extends TextBase
 	{
 		return parent::getControl()->addAttributes([
 			'value' => $this->control->type === 'password' ? $this->control->value : $this->getRenderedValue(),
-			'type' => $this->control->type ?: 'text',
+			'type' => $this->control->type ?? 'text',
 		]);
 	}
 
 
-	/** @return static */
+	/**
+	 * @param  (callable(never, never): bool)|string  $validator
+	 * @return static
+	 */
 	public function addRule(
 		callable|string $validator,
 		string|Stringable|null $errorMessage = null,
@@ -106,7 +108,7 @@ class TextInput extends TextBase
 			&& is_scalar($arg)
 			&& in_array($this->control->type, [null, 'text', 'search', 'tel', 'url', 'email', 'password'], true)
 		) {
-			$this->control->pattern = $arg;
+			$this->control->pattern = (string) $arg;
 		}
 
 		return parent::addRule($validator, $errorMessage, $arg);
