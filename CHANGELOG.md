@@ -1,3 +1,12 @@
+## [4.0.1](https://github.com/baumrock/RockForms/compare/v4.0.0...v4.0.1) (2026-11-15)
+
+
+### Bug Fixes
+
+* avoid null array offset in Nette Container (PHP 8.5) ([d60e455](https://github.com/baumrock/RockForms/commit/d60e455c16098f821fba498a9281ab634024b021))
+* guard rockloaders call when helper is missing ([4e0df63](https://github.com/baumrock/RockForms/commit/4e0df6325873cf1779535c70a317f02752ce1f74))
+* use hidden csrf field and cleaner honeypot markup ([ed61f7b](https://github.com/baumrock/RockForms/commit/ed61f7b2c04b590f2c0cc6134a09464bade8d600))
+
 ## [4.0.0](https://github.com/baumrock/RockForms/compare/v3.2.0...v4.0.0) (2026-01-21)
 
 
@@ -56,13 +65,4 @@
 * remove custom htmx errors ([99abc2d](https://github.com/baumrock/RockForms/commit/99abc2d36a77da5fbe1348a2f8ba8cbb0a0b22d8))
 * rename deprecated property names ([c582432](https://github.com/baumrock/RockForms/commit/c582432b00e084c10382c2b2d42b31fbf2a4ab2b))
 * typeerror if no form name provided ([404d509](https://github.com/baumrock/RockForms/commit/404d50919fe3fb43775fad34193c8f1e8b1e2648))
-
-## [3.0.2](https://github.com/baumrock/RockForms/compare/v3.0.1...v3.0.2) (2025-03-12)
-
-
-### Bug Fixes
-
-* improve rockdevtools check ([70d6294](https://github.com/baumrock/RockForms/commit/70d6294b95d396c05d28cb6bf30a5455b443e872))
-* new live validation loading concept ([c138168](https://github.com/baumrock/RockForms/commit/c1381687eb512f9ec3e5ec3dead71a83c4b93f05))
-* remove obsolete addAssets hook ([f8d5094](https://github.com/baumrock/RockForms/commit/f8d50945bccac3c1bc8acd57eb158c417f1b2690))
 
