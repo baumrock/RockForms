@@ -27,6 +27,9 @@ function rockforms(): RockForms
 // load nette autoloader even before the rockforms class
 // this is necessary for fileuploads to work properly
 require_once __DIR__ . "/vendor/autoload.php";
+// Trait must be available before RockMigrations::autoloadClasses() instantiates
+// PageClasses (case-insensitive FS treats PageClasses as pageClasses).
+require_once __DIR__ . "/RockFormsPage.php";
 
 class RockForms extends WireData implements Module, ConfigurableModule
 {
