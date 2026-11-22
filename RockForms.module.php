@@ -56,6 +56,18 @@ class RockForms extends WireData implements Module, ConfigurableModule
 
   private $formsWireDataObject;
 
+  public function __construct()
+  {
+    parent::__construct();
+    // Page classes (Entry etc.) load during Pages::init(), before Module::init().
+    // Register namespaces here so traits/classes resolve during boot.
+    require_once __DIR__ . "/RockFormsPage.php";
+    $this->wire->classLoader->addNamespace("RockForms", __DIR__ . "/classes");
+    $this->wire->classLoader->addNamespace("RockForms", __DIR__ . "/PageClasses");
+    $this->wire->classLoader->addNamespace("RockForms\Renderer", __DIR__ . "/RockFormsRenderer");
+    $this->wire->classLoader->addNamespace("RockForms\Controls", __DIR__ . "/controls");
+  }
+
   public function init()
   {
 
@@ -63,15 +75,10 @@ class RockForms extends WireData implements Module, ConfigurableModule
     // $httpRequest->isSameSite() returns true in Form.php
     wire()->input->cookie->set(Helpers::StrictCookieName, '1');
 
-    require_once __DIR__ . "/RockFormsPage.php";
-    $this->wire->classLoader->addNamespace("RockForms", __DIR__ . "/classes");
-    $this->wire->classLoader->addNamespace("RockForms", __DIR__ . "/PageClasses");
-    $this->wire->classLoader->addNamespace("RockForms\Renderer", __DIR__ . "/RockFormsRenderer");
     $this->wire->classLoader->addNamespace(
       "RockForms\Renderer",
       $this->wire->config->paths->templates . "RockForms/Renderer"
     );
-    $this->wire->classLoader->addNamespace("RockForms\Controls", __DIR__ . "/controls");
     $this->wire->classLoader->addNamespace(
       "RockForms",
       $this->wire->config->paths->templates . "RockForms"
