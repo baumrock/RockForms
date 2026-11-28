@@ -247,7 +247,7 @@ class RockForm extends Form
   {
     $arr = [];
     $texttools = $this->wire()->sanitizer->getTextTools();
-    foreach ($this->getComponents(true) as $c) {
+    foreach ($this->getComponentTree() as $c) {
       $arr[$c->getName()] = $texttools->markupToText((string)$c->caption);
     }
     return $arr;
